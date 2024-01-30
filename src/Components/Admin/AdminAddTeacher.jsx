@@ -7,7 +7,7 @@ import "../../Styles/AdminCreateUsers.css";
 const AdminAddTeacher = () => {
   const { schoolId } = useParams(); // Extract schoolId from URL params
   const navigate = useNavigate();
-
+  const [profileImage , setProfileImage] = useState();
   const [formData, setFormData] = useState({
     // Initial form state
     firstName: "",
@@ -58,6 +58,11 @@ const AdminAddTeacher = () => {
       console.error("Error adding teacher:", error.message);
     }
   };
+
+  function handleImageChange(e){
+    const file = e.target.files[0];
+    
+  }
 
   return (
     <section>
@@ -267,13 +272,59 @@ const AdminAddTeacher = () => {
                         type="tel"
                         placeholder="Enter number"
                         name="emergencyContactNumber"
+                        onChange={handleImageChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="profile__upload">
+                  <span className="title__heading">Profile Photo Upload</span>
+                  <div className="fields">
+                    <div className="input-field">
+                      <label>Upload Image</label>
+                      <input
+                        type="image"
+                        value={formData.fatherName}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                    <div className="input-field">
+                      <label>Mother Name</label>
+                      <input
+                        type="text"
+                        placeholder="Enter mother name"
+                        name="motherName"
+                        value={formData.motherName}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                    <div className="input-field">
+                      <label>Emergency Contact Name</label>
+                      <input
+                        type="text"
+                        placeholder="Enter contact name"
+                        name="emergencyContactName"
+                        value={formData.emergencyContactName}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                    <div className="input-field">
+                      <label>Emergency Contact Number</label>
+                      <input
+                        type="tel"
+                        placeholder="Enter number"
+                        name="emergencyContactNumber"
                         value={formData.emergencyContactNumber}
                         onChange={handleChange}
                         required
                       />
                     </div>
                   </div>
-                </div>
+                  </div>
               </div>
               {/* <Link to={`/admin/allTeachers/${schoolId}`}> */}
                 <div className="flex_right">

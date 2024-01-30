@@ -9,7 +9,7 @@
 }
 
 
-.container{
+.form_container{
   max-width: 700px;
   width: 100%;
   background-color: #fff;
@@ -17,12 +17,12 @@
   border-radius: 5px;
   box-shadow: 0 5px 10px rgba(0,0,0,0.15);
 }
-.container .title{
+.create__course-container .title{
   font-size: 25px;
   font-weight: 500;
   position: relative;
 }
-.container .title::before{
+.create__course-container .title::before{
   content: "";
   position: absolute;
   left: 0;
@@ -48,7 +48,8 @@ form .input-box span.details{
   margin-bottom: 5px;
 }
 .user-details .input-box input,
-.user-details .input-box textarea{
+.user-details .input-box textarea,
+.user-details .input-box select{
   height: 45px;
   width: 100%;
   outline: none;
@@ -123,7 +124,7 @@ form .input-box span.details{
   background: linear-gradient(-135deg, #71b7e6, #9b59b6);
   }
  @media(max-width: 584px){
- .container{
+ .create__course-container{
   max-width: 100%;
 }
 form .user-details .input-box{
@@ -142,7 +143,7 @@ form .user-details .input-box{
   }
   }
   @media(max-width: 459px){
-  .container .content .category{
+  .create__course-container .content .category{
     flex-direction: column;
   }
 }

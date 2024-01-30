@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../../Styles/PublishCourse.css";
 import { Link } from "react-router-dom";
+import { FaEdit } from "react-icons/fa";
+
 
 const AllCourses = () => {
   const [userCourses, setUserCourses] = useState([]);
@@ -75,19 +77,24 @@ const AllCourses = () => {
           <table className="content__card-table">
             <tbody>
               <tr>
+                <th className="content__table-col-heading">S.No.</th>
                 <th className="content__table-col-heading">Subject</th>
                 <th className="content__table-col-heading">Course Name</th>
                 <th className="content__table-col-heading">Total Chapters</th>
                 <th className="content__table-col-heading">Status</th>
+                <th className="content__table-col-heading"></th>
               </tr>
               {userCourses.map((course, index) => (
                 <tr key={index} className="content__table">
+                  <td className="content__table-data">{index + 1}</td>
                   <td className="content__table-data">{course.subject_name}</td>
                   <td className="content__table-data">{course.course_name}</td>
                   <td className="content__table-data">
                     {course.total_chapters}
                   </td>
                   <td className="content__table-data">{course.status}</td>
+                  <td className="content__table-data" ><FaEdit /></td>
+                  
                 </tr>
               ))}
             </tbody>

@@ -17,7 +17,7 @@ import ResetPassword from "./Components/UserLogin/ResetPassword";
 import Home from "./Components/Dashboard/Home";
 import AllCourses from "./Components/Dashboard/AllCourses.jsx";
 import CreateCourse from "./Components/Dashboard/CreateCourse.jsx";
-import CourseBuilder from "./Components/CourseBuilder/CourseBuilder.js";
+
 import TeacherProfile from "./Components/Profile/TeacherProfile.jsx";
 import PublishCourse from "./Components/PublishCourse/PublishCourse.jsx";
 import PublishCourseDetails from "./Components/PublishCourse/PublishCourseDetails.jsx";
@@ -28,6 +28,7 @@ import AdminAllStudents from "./Components/Admin/AdminAllStudents.jsx";
 import AdminSchoolDetails from "./Components/Admin/AdminSchoolDetails.jsx";
 import AdminTeacherDetails from "./Components/Admin/AdminTeacherDetails.jsx";
 import AdminStudentDetails from "./Components/Admin/AdminStudentDetails.jsx";
+import CourseBuilder from "./Components/CourseBuilder/CourseBuilder.jsx";
 
 const App = () => {
   const [userRole, setUserRole] = useState(null);
@@ -103,6 +104,13 @@ const App = () => {
           <Route path="/forgotPassword" element={<ForgotPassword />} />
           <Route path="/verify-otp" element={<Otp />} />
           <Route path="/resetPassword" element={<ResetPassword />} />
+          <Route path="/course-builder" element={<CourseBuilder/>} />
+          <Route path="/course-builder/:courseId" element={<CourseBuilder/>} />
+          <Route path="/course-builder/:courseId/:semesterName/:semesterId" element={<CourseBuilder/>} />
+          <Route path="/course-builder/:courseId/:semesterName/:semesterId/:chapterName/:chapterId" element={<CourseBuilder/>} />
+          <Route path="/course-builder/:courseId/:semesterName/:semesterId/test/:semesterTestName/:semesterTestId" element={<CourseBuilder/>} />
+          <Route path="/course-builder/:courseId/:semesterName/:semesterId/:chapterName/:chapterId/:sectionName/:sectionId" element={<CourseBuilder/>} />
+          <Route path="/course-builder/:courseId/:semesterName/:semesterId/:chapterName/:chapterId/test/:chapterTestName/:chapterTestId" element={<CourseBuilder/>} />
           {/* Wrap routes that should have the Sidebar with a Sidebar component */}
           <Route
             path="/*"
@@ -113,7 +121,6 @@ const App = () => {
                   <Route path="/home" element={<Home />} />
                   <Route path="/courses" element={<AllCourses />} />
                   <Route path="/create-course" element={<CreateCourse />} />
-                  <Route path="/course-builder" element={<CourseBuilder />} />
                   <Route path="/teacher-profile" element={<TeacherProfile />} />
                   <Route path="/publish-course" element={<PublishCourse />} />
                   <Route

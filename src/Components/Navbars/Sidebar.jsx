@@ -12,6 +12,7 @@ const Sidebar = ({ children , userRole }) => {
     "/verify-otp",
     "/forgotPassword",
     "/resetPassword",
+    "/course-builder"
   ];
   const shouldExcludeSidebar = excludedRoutes.includes(location.pathname);
 

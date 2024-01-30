@@ -1,32 +1,54 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import ReactQuill, { Quill } from "react-quill"; // Import Quill from react-quill
 import "react-quill/dist/quill.snow.css";
 import ImageResize from "quill-image-resize-module-react";
 import quill from "quill";
 
 window.Quill = quill;
-console.log("window.Quill = quill executed");
-Quill.register("modules/imageResize", ImageResize);
-console.log("outside editor Quill.register executed");
 
-const Editor = ({finalCourseData,setFinalCourseData, index, placeholder, content }) => {
-  console.log("Editor component called");
+Quill.register("modules/imageResize", ImageResize);
+
+const Editor = ({ slidesData, setSlidesData, slideId, placeholder, data , contentId , isSorted}) => {
   
+  const [editorContent , setEditorContent] = useState("");
+
   useEffect(()=>{
-    console.log("Editor component render finished and useEffect is called");
-  })
+    if(data){
+      setEditorContent(data);
+    }else{
+      setEditorContent('');
+    }
+  },[slideId , isSorted])
+
+  useEffect(()=>{
+    setSlidesData((slidesData)=>{
+      const newSlidesData = {...slidesData , slides:[...slidesData.slides.map((slide)=>{
+        if(slide.id === slideId ){
+          return {
+            id:slide.id,
+            content:[...slide.content.map((contentObject)=>{
+              if(contentObject.id === contentId ){
+                return{
+                  id:contentObject.id,
+                  type:contentObject.type,
+                  data:editorContent
+                }
+              }
+              return{
+                ...contentObject
+              }
+            })]
+          }
+        }else{
+          return {...slide}
+        }
+      })]}
+      return newSlidesData;
+    })
+  },[editorContent])
 
   const handleChange = (html) => {
-    console.log("Editors onChange funcion called");
-    
-    setFinalCourseData((finalCourseData)=>{
-      console.log("inside Editors onChange handler fcd value passed to setter function: " , finalCourseData);
-      const newFinalCourseData = [...finalCourseData];
-      console.log("inside Editors onChange handler newfinalCourseData value: ",newFinalCourseData );
-      newFinalCourseData[index] = {...newFinalCourseData[index] , content : html};
-      console.log("inside Editors onChange handler newFinalCourseData content value is updated using html: " , html ," updated value :" , newFinalCourseData[index]);
-      return newFinalCourseData;
-  })
+    setEditorContent(html);
   };
 
   const modules = {
@@ -74,9 +96,9 @@ const Editor = ({finalCourseData,setFinalCourseData, index, placeholder, content
   ];
 
   return (
-    <ReactQuill
+     <ReactQuill
       onChange={handleChange}
-      value={content}
+      value={editorContent}
       modules={modules}
       formats={formats}
       bounds="#root"
