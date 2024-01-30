@@ -61,7 +61,7 @@ const MyModal = ({ showModal, setShowModal,
           <>
             <label>Chapter Name: </label><input style={{ width: '100%' }} value={chapterName} onChange={(e) => setChapterName(e.target.value)}></input>
             {error && <><span style={{ color: "red", fontSize: "12px" }}>enter name for Chapter</span><br /></>}
-            <button className='add-button2' onClick={() => { addChapter(semIndex); }}>add chapter</button>
+            <button className='add-button2' onClick={() => { addChapter(semId); }}>add chapter</button>
             <button style={{ marginLeft: "5px" }} className='add-button' onClick={() => { setShowModal((showModal) => { return { ...showModal, show: false } }); setSemesterName(''); setError(false) }}>cancel</button>
           </>
         )
@@ -95,7 +95,7 @@ const MyModal = ({ showModal, setShowModal,
           <>
             <label>Section Name: </label><input style={{ width: '100%' }} value={sectionName} onChange={(e) => setSectionName(e.target.value)}></input>
             {error && <><span style={{ color: "red", fontSize: "12px" }}>enter name for Section</span><br /></>}
-            <button className='add-button' onClick={() => { addSection(semIndex, chapIndex); }}>add section</button>
+            <button className='add-button' onClick={() => { addSection(semId, chapId); }}>add section</button>
             <button style={{ marginLeft: "5px" }} className='add-button' onClick={() => { setShowModal((showModal) => { return { ...showModal, show: false } }); setSemesterName(''); setError(false) }}>cancel</button>
           </>
         )

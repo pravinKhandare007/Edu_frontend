@@ -12,7 +12,7 @@ import axios from 'axios';
 
 const SideBar = ({ mainCourseData, setMainCourseData,
     resetSelectedIds, semesterDropdownInfo, chapterDropdownInfo, setSemesterDropdownInfo, setChapterDropdownInfo,
-    handleSlectedIds, setIsDeleted
+    handleSlectedIds, setIsDeleted, isDataSaved
 }) => {
     //console.log("rendering child sidebar");
     const [sidebarData, setSidebarData] = useState(null);
@@ -21,7 +21,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
     const [chapterName, setChapterName] = useState('');
     const [sectionName, setSectionName] = useState('');
     const [quizName, setQuizName] = useState('');
-    const { courseId, semesterId, chapterId, semesterTestId, sectionId, chapterTestId } = useParams();
+    const { courseId } = useParams();
     //below states store the semester or chapter id then match those to open or close the dropdowns
     const [semesterDropdown, setSemesterDropdown] = useState('');
     const [chapterDropdown, setChapterDropdown] = useState('');
@@ -67,18 +67,12 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                 console.log(response.data);
 
                 if (response.data.status === 'no data') {
-                    setSidebarData(null);
+                    setSidebarData({ semesters: [] });
                 } else {
                     setSidebarData(response.data);
                 }
             })
     }, [])
-
-
-
-
-
-
 
     //below useEffect sets parents variable that is passed to preview so the dropdowns should be open in preview as well
     useEffect(() => {
@@ -138,22 +132,22 @@ const SideBar = ({ mainCourseData, setMainCourseData,
             }
 
         })
-        const newSemesterObj = {
-            id: uuidv4(),
-            name: semesterName,
-            content: null,
-            chapters: [],
-            semesterTest: []
-        }
+        // const newSemesterObj = {
+        //     id: uuidv4(),
+        //     name: semesterName,
+        //     content: null,
+        //     chapters: [],
+        //     semesterTest: []
+        // }
 
 
-        const newSemesters = [...mainCourseData.semesters];
-        newSemesters.push(newSemesterObj);
-        setMainCourseData({ semesters: newSemesters })
+        // const newSemesters = [...mainCourseData.semesters];
+        // newSemesters.push(newSemesterObj);
+        // setMainCourseData({ semesters: newSemesters })
 
     };
 
-    function addChapter(semIndex) {
+    function addChapter(semesterId) {
         if (!chapterName) {
             setError(true);
             return
@@ -167,19 +161,53 @@ const SideBar = ({ mainCourseData, setMainCourseData,
             if (response.data.status === 'success') {
                 setSidebarData((sidebarData) => {
                     const newSemesters = sidebarData.semesters.map((semester) => {
+                        console.log(semester.id, semesterId);
                         if (semester.id === semesterId) {
-                            semester.chapters.push({
-                                id: response.data.insertId, name: chapterName, content: null,
-                                sections: [],
-                                chapterTests: []
-                            });
+                            return {
+                                ...semester, chapters: [...semester.chapters, {
+                                    id: response.data.insertId,
+                                    name: chapterName,
+                                    sections: [],
+                                    chapterTest: []
+                                }]
+                            }
+                            // semester.chapters.push({
+                            //     id: response.data.insertId, name: chapterName, content: null,
+                            //     sections: [],
+                            //     chapterTests: []
+                            // });
+                            // console.log('semester after adding chapter' , semester);
+                        } else {
                             return semester;
+                        }
+                    })
+                    console.log("semesters", newSemesters)
+                    return { semesters: newSemesters }
+                });
+                setMainCourseData((mainCourseData) => {
+                    const newSemesters = mainCourseData.semesters.map((semester) => {
+                        if (semester.id === semesterId) {
+                            return {
+                                ...semester, chapters: [...semester.chapters, {
+                                    id: response.data.insertId,
+                                    name: chapterName,
+                                    content: null,
+                                    sections: [],
+                                    chapterTest: []
+                                }]
+                            }
+                            // semester.chapters.push({
+                            //     id: response.data.insertId, name: chapterName, content: null,
+                            //     sections: [],
+                            //     chapterTests: []
+                            // });
+                            // console.log('semester after adding chapter' , semester);
                         } else {
                             return semester;
                         }
                     })
                     return { semesters: newSemesters }
-                });
+                })
                 setChapterName("");
                 setShowModal((showModal) => { return { ...showModal, show: false } })
                 setError(false)
@@ -190,39 +218,115 @@ const SideBar = ({ mainCourseData, setMainCourseData,
             }
 
         })
-        const newChapter = {
-            id: uuidv4(),
-            name: chapterName,
-            content: null,
-            sections: [],
-            chapterTest: []
-        }
+        // const newChapter = {
+        //     id: uuidv4(),
+        //     name: chapterName,
+        //     content: null,
+        //     sections: [],
+        //     chapterTest: []
+        // }
 
-        const newSemesters = [...mainCourseData.semesters];
-        newSemesters[semIndex].chapters.push(newChapter)
-        setMainCourseData({ semesters: newSemesters })
-        setChapterName("");
-        setShowModal((showModal) => { return { ...showModal, show: false } })
-        setError(false)
+        // const newSemesters = [...mainCourseData.semesters];
+        // newSemesters[semIndex].chapters.push(newChapter)
+        // setMainCourseData({ semesters: newSemesters })
+        // setChapterName("");
+        // setShowModal((showModal) => { return { ...showModal, show: false } })
+        // setError(false)
     }
 
-    function addSection(semIndex, chapIndex) {
+    function addSection(semesterId, chapterId) {
         if (!sectionName) {
             setError(true);
             return
         }
-        const newSection = {
-            id: uuidv4(),
-            name: sectionName,
-            content: null
-        }
 
-        const newSemesters = [...mainCourseData.semesters];
-        newSemesters[semIndex].chapters[chapIndex].sections.push(newSection);
-        setMainCourseData({ semesters: newSemesters })
-        setSectionName("");
-        setShowModal((showModal) => { return { ...showModal, show: false } })
-        setError(false);
+        axios.post('http://localhost:3001/api/add-section', {
+            name: sectionName,
+            courseId: courseId,
+            semesterId: semesterId,
+            chapterId: chapterId
+        }).then((response) => {
+            if (response.data.status === 'success') {
+                setSidebarData((sidebarData) => {
+                    const newSemesters = sidebarData.semesters.map((semester) => {
+                        if (semester.id === semesterId) {
+                            return {
+                                ...semester, chapters: semester.chapters.map((chapter) => {
+                                    if (chapter.id === chapterId) {
+                                        return {
+                                            ...chapter, sections: [...chapter.sections, {
+                                                id: response.data.insertId,
+                                                name: sectionName,
+                                            }]
+                                        }
+                                        // chapter.sections.push({
+                                        //     id: response.data.insertId,
+                                        //     name: sectionName,
+                                        //     content: null
+                                        // })
+                                    } else {
+                                        return chapter
+                                    }
+                                })
+                            }
+                        } else {
+                            return semester;
+                        }
+                    })
+                    return { semesters: newSemesters }
+                });
+                setMainCourseData((mainCourseData) => {
+                    const newSemesters = mainCourseData.semesters.map((semester) => {
+                        if (semester.id === semesterId) {
+                            return {
+                                ...semester, chapters: semester.chapters.map((chapter) => {
+                                    if (chapter.id === chapterId) {
+                                        return {
+                                            ...chapter, sections: [...chapter.sections, {
+                                                id: response.data.insertId,
+                                                name: sectionName,
+                                                content: null
+                                            }]
+                                        }
+                                        // chapter.sections.push({
+                                        //     id: response.data.insertId,
+                                        //     name: sectionName,
+                                        //     content: null
+                                        // })
+                                        return chapter;
+                                    } else {
+                                        return chapter
+                                    }
+                                })
+                            }
+                        } else {
+                            return semester;
+                        }
+                    })
+                    return { semesters: newSemesters }
+                })
+                setSectionName("");
+                setShowModal((showModal) => { return { ...showModal, show: false } })
+                setError(false)
+            } else {
+                setError('adding section failed try again');
+                setSectionName("");
+                setShowModal((showModal) => { return { ...showModal, show: false } })
+            }
+
+        })
+        // const newSection = {
+        //     id: uuidv4(),
+        //     name: sectionName,
+        //     content: null
+        // }
+
+        // const newSemesters = [...mainCourseData.semesters];
+        // newSemesters[semIndex].chapters[chapIndex].sections.push(newSection);
+        // setMainCourseData({ semesters: newSemesters })
+        // setSectionName("");
+        // setShowModal((showModal) => { return { ...showModal, show: false } })
+        // setError(false);
     }
 
     function addSectionLevelQuiz(semIndex, chapIndex) {
@@ -564,6 +668,70 @@ const SideBar = ({ mainCourseData, setMainCourseData,
         );
     }
     //sub branch
+
+
+    function handleSemesterClick(semId, type) {
+        // if parent data is not present fetch the data
+        console.log(mainCourseData);
+        if (!mainCourseData) {
+            axios.get("http://localhost:3001/api/get-parent-data", {
+                params: {
+                    semesterId: semId,
+                    courseId: courseId
+                }
+            }).then((response) => {
+                console.log("response", response)
+                if (response.data.status === 'no data') {
+                    //i.e semester row is not there 
+                    //there was no data in the semester i.e no chapters and tests we have to set parent data to
+                    // const parentData = {
+                    //     id:response.id,
+                    //     name:response.name,
+                    //     content:null,
+                    //     chapters:[],
+                    //     semesterTest:[]
+                    // }
+                    // setMainCourseData({semesters:[{
+                    //     id:response.id,
+                    //     name:response.name,
+                    //     content:null,
+                    //     chapters:[],
+                    //     semesterTest:[]
+                    // }]})
+                } else {
+                    //there is semester row 
+                    setMainCourseData(response.data);
+                    handleSlectedIds(semId, null, null, null, 'semesters');
+                }
+            })
+        }else if(semId === mainCourseData?.semesters[0].id){
+            //if parent data is present and semester is clicked then dont fetch data only change the local ids
+            handleSlectedIds(semId, null, null, null, 'semesters');
+        }else if(semId !== mainCourseData?.semesters[0].id && !isDataSaved){ //semid is diff and data is not saved
+            //if parent data is present and user clicks on another sem and the data is not saved prompt to save 
+        }else if(semId !== mainCourseData?.semesters[0].id && isDataSaved){ //semid is diff and data is saved
+            //then make axios call to fetch new sem data and dont show the save data first prompt.
+            axios.get("http://localhost:3001/api/get-parent-data", {
+                params: {
+                    semesterId: semId,
+                    courseId: courseId
+                }
+            }).then((response) => {
+                console.log("response", response)
+                if (response.data.status === 'no data') {
+                } else {
+                    //there is semester row 
+                    setMainCourseData(response.data);
+                    handleSlectedIds(semId, null, null, null, 'semesters');
+                }
+            })
+        }
+        //check wether its the current sem or not
+        console.log("semester click handler")
+        //set the selected semester parent state before that fetch the parent data
+
+
+    }
     return (
         <>
             <div style={{ overflow: 'auto', height: '90%' }}>
@@ -584,7 +752,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                 }
                 <Accordion>
                     {
-                        sidebarData && sidebarData.semesters.map((semester, semIndex) => (
+                        sidebarData && sidebarData.semesters?.map((semester, semIndex) => (
                             <Card>
                                 <Card.Header>
                                     <div
@@ -596,7 +764,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                                         onMouseLeave={() => { setIsHovering(null) }}
                                         title={`${semester.name}`}
                                     >
-                                        <label onClick={() => { navigate(`/course-builder/${courseId}/${semester.name}/${semester.id}`) }}
+                                        <label onClick={() => { handleSemesterClick(semester.id, 'semester') }}
                                             style={{ cursor: 'pointer', maxWidth: '70%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                                             {semester.name}
                                         </label>
@@ -629,7 +797,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                                                                 onMouseLeave={() => { setIsHovering(null) }}
                                                                 title={`${chapter.name}`}
                                                             >
-                                                                <label onClick={() => { handleSlectedIds(semester.id, chapter.id, null, null, 'chapters'); navigate(`/course-builder/${courseId}/${semester.name}/${semester.id}/${chapter.name}/${chapter.id}`) }} style={{ cursor: 'pointer', maxWidth: '63%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{chapter.name}</label>
+                                                                <label onClick={() => { handleSlectedIds(semester.id, chapter.id, null, null, 'chapters'); }} style={{ cursor: 'pointer', maxWidth: '63%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{chapter.name}</label>
                                                                 <span>
                                                                     {isHovering === `chapter${chapter.id}` && <i className="fa-solid fa-pen me-2"
                                                                         onClick={() => setShowModal((showModal) => { return { ...showModal, semId: semester.id, chapId: chapter.id, action: 'edit', type: 'chapter', name: chapter.name, show: true, title: 'Edit Chapter' } })}
@@ -645,7 +813,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                                                         <Accordion.Collapse eventKey={`${chapIndex}`}>
                                                             <Card.Body className='testing-2'>
                                                                 {
-                                                                    chapter.sections.map((section, secIndex) => (
+                                                                    chapter.sections?.map((section, secIndex) => (
                                                                         <div
                                                                             style={{
                                                                                 display: "flex",
@@ -659,7 +827,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                                                                             title={section.name}
                                                                         >
 
-                                                                            <label onClick={() => { handleSlectedIds(semester.id, chapter.id, section.id, null, 'sections'); setCurrentSection(section.id); navigate(`/course-builder/${courseId}/${semester.name}/${semester.id}/${chapter.name}/${chapter.id}/${section.name}/${section.id}`) }} style={{ cursor: 'pointer', maxWidth: '63%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{section.name}</label>
+                                                                            <label onClick={() => { handleSlectedIds(semester.id, chapter.id, section.id, null, 'sections'); setCurrentSection(section.id); }} style={{ cursor: 'pointer', maxWidth: '63%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{section.name}</label>
 
                                                                             <span>{isHovering === `section${section.id}` && <i className="fa-solid fa-pen me-2" onClick={() => setShowModal((showModal) => { return { ...showModal, semId: semester.id, chapId: chapter.id, secId: section.id, name: section.name, type: 'section', action: 'edit', show: true, title: 'Edit Section' } })} style={{ cursor: 'pointer' }}></i>}
                                                                                 {isHovering === `section${section.id}` && <i className="fa-regular fa-circle-xmark me-2" onClick={() => setShowModal((showModal) => { return { ...showModal, semId: semester.id, chapId: chapter.id, secId: section.id, name: section.name, type: 'section', action: 'delete', show: true, title: 'Delete Section' } })} style={{ cursor: 'pointer', marginRight: "3px" }}></i>}
@@ -682,7 +850,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                                                                             title={`${q.name}`}
                                                                         >
 
-                                                                            <label onClick={() => { navigate(`/course-builder/${courseId}/${semester.name}/${semester.id}/${chapter.name}/${chapter.id}/test/${q.name}/${q.id}`); handleSlectedIds(semester.id, chapter.id, null, q.id, 'chapterTest'); setCurrentSection(q.id) }} style={{ cursor: 'pointer', maxWidth: '63%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{q.name}</label>
+                                                                            <label onClick={() => { handleSlectedIds(semester.id, chapter.id, null, q.id, 'chapterTest'); setCurrentSection(q.id) }} style={{ cursor: 'pointer', maxWidth: '63%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{q.name}</label>
 
                                                                             <span>{isHovering === `chapterTest${q.id}` && <i className="fa-solid fa-pen me-2" onClick={() => setShowModal((showModal) => { return { ...showModal, chapTestId: q.id, semId: semester.id, chapId: chapter.id, name: q.name, type: 'chapTest', action: 'edit', show: true, title: 'Edit Test' } })} style={{ cursor: 'pointer' }}></i>}
                                                                                 {isHovering === `chapterTest${q.id}` && <i className="fa-regular fa-circle-xmark me-2" onClick={() => setShowModal((showModal) => { return { ...showModal, chapTestId: q.id, semId: semester.id, chapId: chapter.id, name: q.name, type: 'chapTest', action: 'delete', show: true, title: 'Delete Test' } })} style={{ cursor: 'pointer', marginRight: "3px" }}></i>}
@@ -692,7 +860,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                                                                 }
                                                                 <div >
                                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0px' }}>
-                                                                        <span>Add Section</span><i style={{ marginLeft: "7px", cursor: 'pointer' }} onClick={() => { setShowModal({ ...showModal, semIndex: semIndex, chapIndex: chapIndex, type: 'section', action: 'add', show: true, title: 'Add Section' }) }} className="fa-solid fa-plus"></i>
+                                                                        <span>Add Section</span><i style={{ marginLeft: "7px", cursor: 'pointer' }} onClick={() => { setShowModal({ ...showModal, semId: semester.id, chapId: chapter.id, semIndex: semIndex, chapIndex: chapIndex, type: 'section', action: 'add', show: true, title: 'Add Section' }) }} className="fa-solid fa-plus"></i>
                                                                     </div>
                                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0px' }}>
                                                                         <span>Add Test</span><i style={{ marginLeft: "7px", cursor: 'pointer' }} onClick={() => { setShowModal({ ...showModal, semIndex: semIndex, chapIndex: chapIndex, type: 'chapTest', action: 'add', show: true, title: 'Add Test' }) }} className="fa-solid fa-plus"></i>
@@ -718,7 +886,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                                                             onMouseLeave={() => { setIsHovering(null) }}
                                                             title={q.name}
                                                         >
-                                                            <label onClick={() => { navigate(`/course-builder/${courseId}/${semester.name}/${semester.id}/test/${q.name}/${q.id}`); handleSlectedIds(semester.id, null, null, q.id, 'semesterTest'); }} style={{ cursor: 'pointer', maxWidth: '63%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{q.name}</label>
+                                                            <label onClick={() => { handleSlectedIds(semester.id, null, null, q.id, 'semesterTest'); }} style={{ cursor: 'pointer', maxWidth: '63%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{q.name}</label>
                                                             <span>
                                                                 {isHovering === `semesterTest${q.id}` && <i className="fa-solid fa-pen me-2"
                                                                     onClick={() => setShowModal((showModal) => { return { ...showModal, type: 'semTest', action: 'edit', semId: semester.id, semTestId: q.id, show: true, title: 'Edit Test' } })}
@@ -735,7 +903,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                                         }
                                         <div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0px 7px' }}>
-                                                <span>Add Chapter</span><i style={{ marginLeft: "7px", cursor: 'pointer' }} onClick={() => { setShowModal({ ...showModal, semIndex: semIndex, show: true, type: 'chapter', action: 'add', title: 'Add Chapter' }) }} className="fa-solid fa-plus"></i>
+                                                <span>Add Chapter</span><i style={{ marginLeft: "7px", cursor: 'pointer' }} onClick={() => { setShowModal({ ...showModal, semId: semester.id, semIndex: semIndex, show: true, type: 'chapter', action: 'add', title: 'Add Chapter' }) }} className="fa-solid fa-plus"></i>
                                             </div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0px  7px' }}>
                                                 <span>Add Test</span><i style={{ marginLeft: "7px", cursor: 'pointer' }} onClick={() => { setShowModal({ ...showModal, semIndex: semIndex, show: true, type: 'semTest', action: 'add', title: 'Add Test' }) }} className="fa-solid fa-plus"></i>

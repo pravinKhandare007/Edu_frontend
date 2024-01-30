@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Link, useParams } from "react-router-dom";
 
 
-const CourseBuilder = ({ name = "Trigonometry course", subject = "Maths", discription = "This course will teach about the fundamentals of trigonometry" }) => {
+const CourseBuilder = () => {
     console.log("rendering parent");
     const [courseInfo , setCourseInfo ] = useState(null);
     //useParam 
@@ -17,7 +17,7 @@ const CourseBuilder = ({ name = "Trigonometry course", subject = "Maths", discri
     const [selectedChapterId, setSelectedChapterId] = useState(null);
     const [selectedSectionId, setSelectedSectionId] = useState(null);
     const [selectedQuizId, setSelectedQuizId] = useState(null);
-    const [mainCourseData, setMainCourseData] = useState({ semesters: [] });
+    const [mainCourseData, setMainCourseData] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
     const [type, setType] = useState('');
     
@@ -40,6 +40,8 @@ const CourseBuilder = ({ name = "Trigonometry course", subject = "Maths", discri
 
     //to toggle sidebar
     const [toggle, setToggle] = useState(false);
+    //flag to store if data is saved or not
+    const [isDataSaved , setIsDataSaved] = useState(true);
 
     // useEffect(()=>{
     //     axios.get('http://localhost:3001/api/fetch-course-info')
@@ -48,47 +50,60 @@ const CourseBuilder = ({ name = "Trigonometry course", subject = "Maths", discri
     //     })
     // },[])
     
-    useEffect(() => {
-        setMainCourseData({
-            semesters: [
-                {
-                    id: uuidv4(),
-                    name: 'Sem 1',
-                    content: {
-                        slides: [{ id: uuidv4(), content: [{ id: uuidv4(), type: 'Heading', data: 'Sem 1 heading' }] }]
-                    },
-                    chapters: [
+    // useEffect(() => {
+    //     setMainCourseData({
+    //         semesters: [
+    //             {
+    //                 id: uuidv4(),
+    //                 name: 'Sem 1',
+    //                 content: {
+    //                     slides: [{ id: uuidv4(), content: [{ id: uuidv4(), type: 'Heading', data: 'Sem 1 heading' }] }]
+    //                 },
+    //                 chapters: [
 
-                        {
-                            id: uuidv4(),
-                            name: 'chapter 1',
-                            content: {
-                                slides: [{ id: uuidv4(), content: [{ id: uuidv4(), type: 'Heading', data: 'Sem 1 chapter 1 heading' }] }]
-                            },
-                            sections: [
-                                {
-                                    id: uuidv4(),
-                                    name: 'section 1',
-                                    content: {
-                                        slides: [
-                                            { id: uuidv4(), content: [{ id: uuidv4(), type: 'Heading', data: 'section 1 slide 1' }] },
-                                            { id: uuidv4(), content: [{ id: uuidv4(), type: 'Text', data: 'section 1 slide 2' }] },
-                                        ]
-                                    }
-                                }
-                            ],
-                            chapterTest: [{ id: uuidv4(), name: "Chapter Test", numberOfQuestions: 5, timeLimit: { hours: 4, minutes: 24 }, content: { slides: [{ id: uuidv4(), content: [{ id: uuidv4(), type: 'Quiz', data: null }] }] } }]
-                        },
+    //                     {
+    //                         id: uuidv4(),
+    //                         name: 'chapter 1',
+    //                         content: {
+    //                             slides: [{ id: uuidv4(), content: [{ id: uuidv4(), type: 'Heading', data: 'Sem 1 chapter 1 heading' }] }]
+    //                         },
+    //                         sections: [
+    //                             {
+    //                                 id: uuidv4(),
+    //                                 name: 'section 1',
+    //                                 content: {
+    //                                     slides: [
+    //                                         { id: uuidv4(), content: [{ id: uuidv4(), type: 'Heading', data: 'section 1 slide 1' }] },
+    //                                         { id: uuidv4(), content: [{ id: uuidv4(), type: 'Text', data: 'section 1 slide 2' }] },
+    //                                     ]
+    //                                 }
+    //                             }
+    //                         ],
+    //                         chapterTest: [{ id: uuidv4(), name: "Chapter Test", numberOfQuestions: 5, timeLimit: { hours: 4, minutes: 24 }, content: { slides: [{ id: uuidv4(), content: [{ id: uuidv4(), type: 'Quiz', data: null }] }] } }]
+    //                     },
 
 
-                    ],
-                    semesterTest: [{ id: uuidv4(), name: "Semester Test", numberOfQuestions: 7, timeLimit: { hours: 2, minutes: 20 }, content: { slides: [{ id: uuidv4(), content: [{ id: uuidv4(), type: 'Quiz', data: null }] }] } }]
-                },
+    //                 ],
+    //                 semesterTest: [{ id: uuidv4(), name: "Semester Test", numberOfQuestions: 7, timeLimit: { hours: 2, minutes: 20 }, content: { slides: [{ id: uuidv4(), content: [{ id: uuidv4(), type: 'Quiz', data: null }] }] } }]
+    //             },
 
-            ]
-        });
-    }, []);
-
+    //         ]
+    //     });
+    // }, []);
+    /*
+     mainCourseData = {
+        semesters: [
+             {
+            "id": 10,
+            "name": "demo semester",
+            "content": null,
+            "chapters": [],
+            "semesterTest": []
+        }
+        ]
+     }
+    
+    */
     useEffect(() => {
         console.log("last parent render : , ", mainCourseData);
     })
@@ -173,6 +188,7 @@ const CourseBuilder = ({ name = "Trigonometry course", subject = "Maths", discri
                                 setChapterDropdownInfo={setChapterDropdownInfo}
                                 handleSlectedIds={handleSlectedIds}
                                 setIsDeleted={setIsDeleted}
+                                isDataSaved={isDataSaved}
                             />
                         </div >
                         <div className="slides-container">
@@ -190,6 +206,7 @@ const CourseBuilder = ({ name = "Trigonometry course", subject = "Maths", discri
                                 showPreview={showPreview}
                                 setShowPreview={setShowPreview}
                                 setPreviewIds={setPreviewIds}
+                                setIsDataSaved={setIsDataSaved}
                             />
                         </div>
                     </>

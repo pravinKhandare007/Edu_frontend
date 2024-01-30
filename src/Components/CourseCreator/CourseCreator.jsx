@@ -18,11 +18,14 @@ import McqComponent from './MCQ_Component/McqComponent';
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { Resizable } from 're-resizable';
 import axios from 'axios';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import toast, { Toaster } from "react-hot-toast";
 
 const CourseCreator = ({ selectedSectionId, selectedChapterId, selectedSemId, mainCourseData, setMainCourseData, selectedQuizId, setSlideId,
-    slideId, type, isDeleted, showPreview, setShowPreview, setPreviewIds }) => {
+    slideId, type, isDeleted, showPreview, setShowPreview, setPreviewIds ,setIsDataSaved }) => {
 
+        console.log('rendering course creator');
+        console.log("mcd set by sidebar" , mainCourseData);   
 
     const [activeId, setActiveId] = useState(null);
     const [currentSlideId, setCurrentSlideId] = useState(null); // will contain the id of the current slide
@@ -30,7 +33,7 @@ const CourseCreator = ({ selectedSectionId, selectedChapterId, selectedSemId, ma
     //api we need to send sectionID and body -- sildesData.
     //sample api endpoint = /api/section/:sectionId 
     //api body = slidesData
-    const { courseId , semesterId , chapterId , semesterTestId,sectionId,chapterTestId } = useParams();
+
     const [slidesData, setSlidesData] = useState(null);
     const [timeLimit, setTimeLimit] = useState(null);
     const [numberOfQuestionToShow, setNumberOfQuestionToShow] = useState(null);
@@ -40,11 +43,12 @@ const CourseCreator = ({ selectedSectionId, selectedChapterId, selectedSemId, ma
     }
     //below state is need to re-render nested components when sorting happens 
     const [isSorted, setIsSorted] = useState(false);
+    const notify = () => toast.success("semester successfully saved !!");
     const location = useLocation();
-
+    console.log("slides data after section click", slidesData);
     function getDataFromParent(semId, chapId, secId, quizId) {
 
-        const semester = mainCourseData.semesters ? mainCourseData['semesters'].find(semObj => semObj.id === semId) : null
+        const semester = mainCourseData?.semesters ? mainCourseData['semesters'].find(semObj => semObj.id === semId) : null
         const chapter = semester ? semester['chapters'].find(chapObj => chapObj.id === chapId) : null
         const section = chapter ? chapter['sections'].find(sectionObj => sectionObj.id === secId) : null
         const chapterTest = chapter?.chapterTest ? chapter['chapterTest'].find(chapterTestObj => chapterTestObj.id === quizId) : null
@@ -67,6 +71,7 @@ const CourseCreator = ({ selectedSectionId, selectedChapterId, selectedSemId, ma
             };
         }
         if (type === 'sections') {
+            console.log("section clicked")
             if (section) {
                 setSlidesData(section.content ? section.content : { slides: [firstSlide] });
                 setCurrentSlideId(section.content ? section.content.slides[0].id : firstSlide.id);
@@ -231,37 +236,46 @@ const CourseCreator = ({ selectedSectionId, selectedChapterId, selectedSemId, ma
         }
     }
 
-    useEffect(()=>{
-        axios.get('http://localhost:3001/api/fetch-course-creator-data' , {
-            params: {
-                courseId: courseId,
-                semesterId:semesterId, 
-                chapterId:chapterId , 
-                semesterTestId:semesterTestId,
-                sectionId:sectionId,
-                chapterTestId:chapterTestId
-            }
-        })
-        .then((response)=>{
-            console.log(response.data);
-            if(response.data.status === 'initial mount'){
-                setSlidesData(null);
-            }
-            else if(response.data.status === 'no data'){
-                //no content is there set the sildes data to an empty slide 
-                setSlidesData({
-                    slides:[
-                        firstSlide
-                    ]
-                });
-                setCurrentSlideId(firstSlide.id);
-            }else{
-                setSlidesData(response.data.content);
-                setCurrentSlideId(response.data.content?.slides[0].id);
-            }
+    useEffect(() => {
+        getDataFromParent(selectedSemId, selectedChapterId, selectedSectionId, selectedQuizId);
+    }, [selectedSectionId, selectedSemId, selectedChapterId, selectedQuizId, isDeleted])
+
+    useEffect(() => {
+        setDataToParent(selectedSemId, selectedChapterId, selectedSectionId, selectedQuizId);
+        setIsDataSaved(false);
+    }, [slidesData, timeLimit, numberOfQuestionToShow])
+
+    // useEffect(()=>{
+    //     axios.get('http://localhost:3001/api/fetch-course-creator-data' , {
+    //         params: {
+    //             courseId: courseId,
+    //             semesterId:semesterId, 
+    //             chapterId:chapterId , 
+    //             semesterTestId:semesterTestId,
+    //             sectionId:sectionId,
+    //             chapterTestId:chapterTestId
+    //         }
+    //     })
+    //     .then((response)=>{
+    //         console.log(response.data);
+    //         if(response.data.status === 'initial mount'){
+    //             setSlidesData(null);
+    //         }
+    //         else if(response.data.status === 'no data'){
+    //             //no content is there set the sildes data to an empty slide 
+    //             setSlidesData({
+    //                 slides:[
+    //                     firstSlide
+    //                 ]
+    //             });
+    //             setCurrentSlideId(firstSlide.id);
+    //         }else{
+    //             setSlidesData(response.data.content);
+    //             setCurrentSlideId(response.data.content?.slides[0].id);
+    //         }
            
-        })
-    },[location.pathname])
+    //     })
+    // },[location.pathname])
     // useEffect(() => {
     //     getDataFromParent(selectedSemId, selectedChapterId, selectedSectionId, selectedQuizId);
     // }, [selectedSectionId, selectedSemId, selectedChapterId, selectedQuizId, isDeleted])
@@ -271,10 +285,12 @@ const CourseCreator = ({ selectedSectionId, selectedChapterId, selectedSemId, ma
     // }, [slidesData, timeLimit, numberOfQuestionToShow])
 
     //below useEffect stores currentSlideId value into parent so when user goes into preview we can show that exact slide in preview aswell 
+    
     useEffect(() => {
         setSlideId(currentSlideId);
     }, [currentSlideId])
     //below useEffect is used to set the currentSlideId to the id it was before going into preview
+    
     useEffect(() => {
         if (slideId) {
             setCurrentSlideId(slideId);
@@ -479,16 +495,11 @@ const CourseCreator = ({ selectedSectionId, selectedChapterId, selectedSemId, ma
             const courseId = localStorage.getItem('courseId');
             const token = localStorage.getItem("auth");
             axios.post('http://localhost:3001/api/save-course', {
-                courseId: courseId,
-                mainCourseData: mainCourseData
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                data: mainCourseData
             })
             .then((response) => {
                 console.log('course saved' , response);
+                notify();
             })
         } catch (error) {
             console.log('error saving the course')
