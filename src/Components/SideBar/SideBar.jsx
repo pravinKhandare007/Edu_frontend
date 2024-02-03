@@ -9,10 +9,11 @@ import { useAccordionButton } from 'react-bootstrap/AccordionButton';
 import Card from 'react-bootstrap/Card';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import SaveDataModal from './SaveDataModal';
 
 const SideBar = ({ mainCourseData, setMainCourseData,
     resetSelectedIds, semesterDropdownInfo, chapterDropdownInfo, setSemesterDropdownInfo, setChapterDropdownInfo,
-    handleSlectedIds, setIsDeleted, isDataSaved
+    handleSlectedIds, setIsDeleted, isDataSaved, setShowSaveDataModal
 }) => {
     //console.log("rendering child sidebar");
     const [sidebarData, setSidebarData] = useState(null);
@@ -104,6 +105,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
     //make a word document for the component also start styling this also domo knowledge required.
 
     const addSemester = () => {
+        //--------------------------------------------------    
         if (!semesterName) {
             setError(true);
             return
@@ -130,21 +132,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                 setSemesterName("");
                 setShowModal((showModal) => { return { ...showModal, show: false } })
             }
-
         })
-        // const newSemesterObj = {
-        //     id: uuidv4(),
-        //     name: semesterName,
-        //     content: null,
-        //     chapters: [],
-        //     semesterTest: []
-        // }
-
-
-        // const newSemesters = [...mainCourseData.semesters];
-        // newSemesters.push(newSemesterObj);
-        // setMainCourseData({ semesters: newSemesters })
-
     };
 
     function addChapter(semesterId) {
@@ -153,85 +141,148 @@ const SideBar = ({ mainCourseData, setMainCourseData,
             return
         }
 
-        axios.post('http://localhost:3001/api/add-chapter', {
-            name: chapterName,
-            courseId: courseId,
-            semesterId: semesterId
-        }).then((response) => {
-            if (response.data.status === 'success') {
-                setSidebarData((sidebarData) => {
-                    const newSemesters = sidebarData.semesters.map((semester) => {
-                        console.log(semester.id, semesterId);
-                        if (semester.id === semesterId) {
-                            return {
-                                ...semester, chapters: [...semester.chapters, {
-                                    id: response.data.insertId,
-                                    name: chapterName,
-                                    sections: [],
-                                    chapterTest: []
-                                }]
-                            }
-                            // semester.chapters.push({
-                            //     id: response.data.insertId, name: chapterName, content: null,
-                            //     sections: [],
-                            //     chapterTests: []
-                            // });
-                            // console.log('semester after adding chapter' , semester);
-                        } else {
-                            return semester;
+        if (!mainCourseData) {
+            axios.post('http://localhost:3001/api/add-chapter', {
+                name: chapterName,
+                courseId: courseId,
+                semesterId: semesterId
+            }).then((response) => {
+                if (response.data.status === 'success') {
+                    axios.get("http://localhost:3001/api/get-parent-data", {
+                        params: {
+                            semesterId: semesterId,
+                            courseId: courseId
                         }
+                    }).then((res) => {
+                        setSidebarData((sidebarData) => {
+                            const newSemesters = sidebarData.semesters.map((semester) => {
+                                console.log(semester.id, semesterId);
+                                if (semester.id === semesterId) {
+                                    return {
+                                        ...semester, chapters: [...semester.chapters, {
+                                            id: response.data.insertId,
+                                            name: chapterName,
+                                            sections: [],
+                                            chapterTest: []
+                                        }]
+                                    }
+                                } else {
+                                    return semester;
+                                }
+                            })
+                            console.log("semesters", newSemesters)
+                            return { semesters: newSemesters }
+                        });
+                        setMainCourseData(res.data);
+                        setChapterName("");
+                        setShowModal((showModal) => { return { ...showModal, show: false } })
+                        setError(false)
                     })
-                    console.log("semesters", newSemesters)
-                    return { semesters: newSemesters }
-                });
-                setMainCourseData((mainCourseData) => {
-                    const newSemesters = mainCourseData.semesters.map((semester) => {
-                        if (semester.id === semesterId) {
-                            return {
-                                ...semester, chapters: [...semester.chapters, {
-                                    id: response.data.insertId,
-                                    name: chapterName,
-                                    content: null,
-                                    sections: [],
-                                    chapterTest: []
-                                }]
-                            }
-                            // semester.chapters.push({
-                            //     id: response.data.insertId, name: chapterName, content: null,
-                            //     sections: [],
-                            //     chapterTests: []
-                            // });
-                            // console.log('semester after adding chapter' , semester);
-                        } else {
-                            return semester;
+                } else {
+                    setError('adding chapter failed try again');
+                    setChapterName("");
+                    setShowModal((showModal) => { return { ...showModal, show: false } })
+                }
+            })
+        } else if (semesterId !== mainCourseData.semesters[0].id && isDataSaved) {
+            axios.post('http://localhost:3001/api/add-chapter', {
+                name: chapterName,
+                courseId: courseId,
+                semesterId: semesterId
+            }).then((response) => {
+                if (response.data.status === 'success') {
+                    axios.get("http://localhost:3001/api/get-parent-data", {
+                        params: {
+                            semesterId: semesterId,
+                            courseId: courseId
                         }
+                    }).then((res) => {
+                        setSidebarData((sidebarData) => {
+                            const newSemesters = sidebarData.semesters.map((semester) => {
+                                console.log(semester.id, semesterId);
+                                if (semester.id === semesterId) {
+                                    return {
+                                        ...semester, chapters: [...semester.chapters, {
+                                            id: response.data.insertId,
+                                            name: chapterName,
+                                            sections: [],
+                                            chapterTest: []
+                                        }]
+                                    }
+                                } else {
+                                    return semester;
+                                }
+                            })
+                            console.log("semesters", newSemesters)
+                            return { semesters: newSemesters }
+                        });
+                        setMainCourseData(res.data);
+                        setChapterName("");
+                        setShowModal((showModal) => { return { ...showModal, show: false } })
+                        setError(false)
                     })
-                    return { semesters: newSemesters }
-                })
-                setChapterName("");
-                setShowModal((showModal) => { return { ...showModal, show: false } })
-                setError(false)
-            } else {
-                setError('adding chapter failed try again');
-                setChapterName("");
-                setShowModal((showModal) => { return { ...showModal, show: false } })
-            }
-
-        })
-        // const newChapter = {
-        //     id: uuidv4(),
-        //     name: chapterName,
-        //     content: null,
-        //     sections: [],
-        //     chapterTest: []
-        // }
-
-        // const newSemesters = [...mainCourseData.semesters];
-        // newSemesters[semIndex].chapters.push(newChapter)
-        // setMainCourseData({ semesters: newSemesters })
-        // setChapterName("");
-        // setShowModal((showModal) => { return { ...showModal, show: false } })
-        // setError(false)
+                } else {
+                    setError('adding chapter failed try again');
+                    setChapterName("");
+                    setShowModal((showModal) => { return { ...showModal, show: false } })
+                }
+            })
+        } else if (semesterId !== mainCourseData.semesters[0].id && !isDataSaved) {
+            setShowSaveDataModal(true);
+        } else {
+            //sem data is present in parent then add normally
+            axios.post('http://localhost:3001/api/add-chapter', {
+                name: chapterName,
+                courseId: courseId,
+                semesterId: semesterId
+            }).then((response) => {
+                if (response.data.status === 'success') {
+                    setSidebarData((sidebarData) => {
+                        const newSemesters = sidebarData.semesters.map((semester) => {
+                            console.log(semester.id, semesterId);
+                            if (semester.id === semesterId) {
+                                return {
+                                    ...semester, chapters: [...semester.chapters, {
+                                        id: response.data.insertId,
+                                        name: chapterName,
+                                        sections: [],
+                                        chapterTest: []
+                                    }]
+                                }
+                            } else {
+                                return semester;
+                            }
+                        })
+                        return { semesters: newSemesters }
+                    });
+                    setMainCourseData((mainCourseData) => {
+                        const newSemesters = mainCourseData.semesters.map((semester) => {
+                            if (semester.id === semesterId) {
+                                return {
+                                    ...semester, chapters: [...semester.chapters, {
+                                        id: response.data.insertId,
+                                        name: chapterName,
+                                        content: null,
+                                        sections: [],
+                                        chapterTest: []
+                                    }]
+                                }
+                            } else {
+                                return semester;
+                            }
+                        })
+                        return { semesters: newSemesters }
+                    })
+                    setChapterName("");
+                    setShowModal((showModal) => { return { ...showModal, show: false } })
+                    setError(false)
+                } else {
+                    setError('adding chapter failed try again');
+                    setChapterName("");
+                    setShowModal((showModal) => { return { ...showModal, show: false } })
+                }
+            })
+        }
     }
 
     function addSection(semesterId, chapterId) {
@@ -239,144 +290,492 @@ const SideBar = ({ mainCourseData, setMainCourseData,
             setError(true);
             return
         }
-
-        axios.post('http://localhost:3001/api/add-section', {
-            name: sectionName,
-            courseId: courseId,
-            semesterId: semesterId,
-            chapterId: chapterId
-        }).then((response) => {
-            if (response.data.status === 'success') {
-                setSidebarData((sidebarData) => {
-                    const newSemesters = sidebarData.semesters.map((semester) => {
-                        if (semester.id === semesterId) {
-                            return {
-                                ...semester, chapters: semester.chapters.map((chapter) => {
-                                    if (chapter.id === chapterId) {
-                                        return {
-                                            ...chapter, sections: [...chapter.sections, {
-                                                id: response.data.insertId,
-                                                name: sectionName,
-                                            }]
-                                        }
-                                        // chapter.sections.push({
-                                        //     id: response.data.insertId,
-                                        //     name: sectionName,
-                                        //     content: null
-                                        // })
-                                    } else {
-                                        return chapter
-                                    }
-                                })
-                            }
-                        } else {
-                            return semester;
+        if (!mainCourseData) {
+            axios.post('http://localhost:3001/api/add-section', {
+                name: sectionName,
+                courseId: courseId,
+                semesterId: semesterId,
+                chapterId: chapterId
+            }).then((response) => {
+                if (response.data.status === 'success') {
+                    axios.get("http://localhost:3001/api/get-parent-data", {
+                        params: {
+                            semesterId: semesterId,
+                            courseId: courseId
                         }
-                    })
-                    return { semesters: newSemesters }
-                });
-                setMainCourseData((mainCourseData) => {
-                    const newSemesters = mainCourseData.semesters.map((semester) => {
-                        if (semester.id === semesterId) {
-                            return {
-                                ...semester, chapters: semester.chapters.map((chapter) => {
-                                    if (chapter.id === chapterId) {
-                                        return {
-                                            ...chapter, sections: [...chapter.sections, {
-                                                id: response.data.insertId,
-                                                name: sectionName,
-                                                content: null
-                                            }]
-                                        }
-                                        // chapter.sections.push({
-                                        //     id: response.data.insertId,
-                                        //     name: sectionName,
-                                        //     content: null
-                                        // })
-                                        return chapter;
-                                    } else {
-                                        return chapter
+                    }).then((res) => {
+                        setSidebarData((sidebarData) => {
+                            const newSemesters = sidebarData.semesters.map((semester) => {
+                                if (semester.id === semesterId) {
+                                    return {
+                                        ...semester, chapters: semester.chapters.map((chapter) => {
+                                            if (chapter.id === chapterId) {
+                                                return {
+                                                    ...chapter, sections: [...chapter.sections, {
+                                                        id: response.data.insertId,
+                                                        name: sectionName,
+                                                    }]
+                                                }
+                                            } else {
+                                                return chapter
+                                            }
+                                        })
                                     }
-                                })
-                            }
-                        } else {
-                            return semester;
-                        }
+                                } else {
+                                    return semester;
+                                }
+                            })
+                            return { semesters: newSemesters }
+                        });
+                        setMainCourseData(res.data);
+                        setSectionName("");
+                        setShowModal((showModal) => { return { ...showModal, show: false } })
+                        setError(false)
                     })
-                    return { semesters: newSemesters }
-                })
-                setSectionName("");
-                setShowModal((showModal) => { return { ...showModal, show: false } })
-                setError(false)
-            } else {
-                setError('adding section failed try again');
-                setSectionName("");
-                setShowModal((showModal) => { return { ...showModal, show: false } })
-            }
+                } else {
+                    setError('adding section failed try again');
+                    setSectionName("");
+                    setShowModal((showModal) => { return { ...showModal, show: false } })
+                }
+            })
+        } else if (semesterId !== mainCourseData.semesters[0].id && isDataSaved) {
+            axios.post('http://localhost:3001/api/add-section', {
+                name: sectionName,
+                courseId: courseId,
+                semesterId: semesterId,
+                chapterId: chapterId
+            }).then((response) => {
+                if (response.data.status === 'success') {
+                    axios.get("http://localhost:3001/api/get-parent-data", {
+                        params: {
+                            semesterId: semesterId,
+                            courseId: courseId
+                        }
+                    }).then((res) => {
+                        setSidebarData((sidebarData) => {
+                            const newSemesters = sidebarData.semesters.map((semester) => {
+                                if (semester.id === semesterId) {
+                                    return {
+                                        ...semester, chapters: semester.chapters.map((chapter) => {
+                                            if (chapter.id === chapterId) {
+                                                return {
+                                                    ...chapter, sections: [...chapter.sections, {
+                                                        id: response.data.insertId,
+                                                        name: sectionName,
+                                                    }]
+                                                }
+                                            } else {
+                                                return chapter
+                                            }
+                                        })
+                                    }
+                                } else {
+                                    return semester;
+                                }
+                            })
+                            return { semesters: newSemesters }
+                        });
+                        setMainCourseData(res.data);
+                        setSectionName("");
+                        setShowModal((showModal) => { return { ...showModal, show: false } })
+                        setError(false)
+                    })
+                } else {
+                    setError('adding section failed try again');
+                    setSectionName("");
+                    setShowModal((showModal) => { return { ...showModal, show: false } })
+                }
+            })
+        } else if (semesterId !== mainCourseData.semesters[0].id && !isDataSaved) {
+            setShowSaveDataModal(true);
+        } else {
+            //parent data is present and sem id is also same 
+            axios.post('http://localhost:3001/api/add-section', {
+                name: sectionName,
+                courseId: courseId,
+                semesterId: semesterId,
+                chapterId: chapterId
+            }).then((response) => {
+                if (response.data.status === 'success') {
+                    setSidebarData((sidebarData) => {
+                        const newSemesters = sidebarData.semesters.map((semester) => {
+                            if (semester.id === semesterId) {
+                                return {
+                                    ...semester, chapters: semester.chapters.map((chapter) => {
+                                        if (chapter.id === chapterId) {
+                                            return {
+                                                ...chapter, sections: [...chapter.sections, {
+                                                    id: response.data.insertId,
+                                                    name: sectionName,
+                                                }]
+                                            }
+                                        } else {
+                                            return chapter
+                                        }
+                                    })
+                                }
+                            } else {
+                                return semester;
+                            }
+                        })
+                        return { semesters: newSemesters }
+                    });
+                    setMainCourseData((mainCourseData) => {
+                        const newSemesters = mainCourseData.semesters.map((semester) => {
+                            if (semester.id === semesterId) {
+                                return {
+                                    ...semester, chapters: semester.chapters.map((chapter) => {
+                                        if (chapter.id === chapterId) {
+                                            return {
+                                                ...chapter, sections: [...chapter.sections, {
+                                                    id: response.data.insertId,
+                                                    name: sectionName,
+                                                    content: null
+                                                }]
+                                            }
+                                        } else {
+                                            return chapter
+                                        }
+                                    })
+                                }
+                            } else {
+                                return semester;
+                            }
+                        })
+                        return { semesters: newSemesters }
+                    })
+                    setSectionName("");
+                    setShowModal((showModal) => { return { ...showModal, show: false } })
+                    setError(false)
+                } else {
+                    setError('adding section failed try again');
+                    setSectionName("");
+                    setShowModal((showModal) => { return { ...showModal, show: false } })
+                }
 
-        })
-        // const newSection = {
-        //     id: uuidv4(),
-        //     name: sectionName,
-        //     content: null
-        // }
-
-        // const newSemesters = [...mainCourseData.semesters];
-        // newSemesters[semIndex].chapters[chapIndex].sections.push(newSection);
-        // setMainCourseData({ semesters: newSemesters })
-        // setSectionName("");
-        // setShowModal((showModal) => { return { ...showModal, show: false } })
-        // setError(false);
+            })
+        }
     }
 
-    function addSectionLevelQuiz(semIndex, chapIndex) {
+    function addSectionLevelQuiz(semesterId, chapterId) {
         if (!quizName) {
             setError(true);
             return;
         }
-        const newQuiz = {
-            id: uuidv4(),
-            name: quizName,
-            numberOfQuestions: null,
-            timeLimit: null,
-            content: { slides: [{ id: uuidv4(), content: [{ id: uuidv4(), type: 'Quiz', data: null }] }] }
-        }
+        if (!mainCourseData) {
+            axios.post('http://localhost:3001/api/add-chapter-test', {
+                name: quizName,
+                chapterId: chapterId
+            }).then((response) => {
+                if (response.data.status === 'success') {
+                    axios.get("http://localhost:3001/api/get-parent-data", {
+                        params: {
+                            semesterId: semesterId,
+                            courseId: courseId
+                        }
+                    }).then((res) => {
+                        setSidebarData((sidebarData) => {
+                            const newSemesters = sidebarData.semesters.map((semester) => {
+                                if (semester.id === semesterId) {
+                                    return {
+                                        ...semester, chapters: semester.chapters.map((chapter) => {
+                                            if (chapter.id === chapterId) {
+                                                return {
+                                                    ...chapter, chapterTest: [...chapter.chapterTest, {
+                                                        id: response.data.insertId,
+                                                        name: quizName,
+                                                    }]
+                                                }
+                                            } else {
+                                                return chapter
+                                            }
+                                        })
+                                    }
+                                } else {
+                                    return semester;
+                                }
+                            })
+                            return { semesters: newSemesters }
+                        });
+                        setMainCourseData(res.data)
+                        setQuizName("");
+                        setShowModal((showModal) => { return { ...showModal, show: false } })
+                        setError(false)
+                    })
 
-        const newSemesters = [...mainCourseData.semesters];
-        newSemesters[semIndex].chapters[chapIndex].chapterTest.push(newQuiz);
-        setMainCourseData({ semesters: newSemesters });
-        setQuizName("");
-        setShowModal((showModal) => { return { ...showModal, show: false } });
-        setError(false);
+
+                } else {
+                    setError('adding chapter test failed try again');
+                    setQuizName("");
+                    setShowModal((showModal) => { return { ...showModal, show: false } })
+                }
+            })
+        } else if (semesterId !== mainCourseData.semesters[0].id && isDataSaved) {
+            axios.post('http://localhost:3001/api/add-chapter-test', {
+                name: quizName,
+                chapterId: chapterId
+            }).then((response) => {
+                if (response.data.status === 'success') {
+                    axios.get("http://localhost:3001/api/get-parent-data", {
+                        params: {
+                            semesterId: semesterId,
+                            courseId: courseId
+                        }
+                    }).then((res) => {
+                        setSidebarData((sidebarData) => {
+                            const newSemesters = sidebarData.semesters.map((semester) => {
+                                if (semester.id === semesterId) {
+                                    return {
+                                        ...semester, chapters: semester.chapters.map((chapter) => {
+                                            if (chapter.id === chapterId) {
+                                                return {
+                                                    ...chapter, chapterTest: [...chapter.chapterTest, {
+                                                        id: response.data.insertId,
+                                                        name: quizName,
+                                                    }]
+                                                }
+                                            } else {
+                                                return chapter
+                                            }
+                                        })
+                                    }
+                                } else {
+                                    return semester;
+                                }
+                            })
+                            return { semesters: newSemesters }
+                        });
+                        setMainCourseData(res.data)
+                        setQuizName("");
+                        setShowModal((showModal) => { return { ...showModal, show: false } })
+                        setError(false)
+                    })
+
+
+                } else {
+                    setError('adding chapter test failed try again');
+                    setQuizName("");
+                    setShowModal((showModal) => { return { ...showModal, show: false } })
+                }
+            })
+
+        } else if (semesterId !== mainCourseData.semesters[0].id && !isDataSaved) {
+            setShowSaveDataModal(true);
+        } else {
+            axios.post('http://localhost:3001/api/add-chapter-test', {
+                name: quizName,
+                chapterId: chapterId
+            }).then((response) => {
+                if (response.data.status === 'success') {
+                    setSidebarData((sidebarData) => {
+                        const newSemesters = sidebarData.semesters.map((semester) => {
+                            if (semester.id === semesterId) {
+                                return {
+                                    ...semester, chapters: semester.chapters.map((chapter) => {
+                                        if (chapter.id === chapterId) {
+                                            return {
+                                                ...chapter, chapterTest: [...chapter.chapterTest, {
+                                                    id: response.data.insertId,
+                                                    name: quizName,
+                                                }]
+                                            }
+                                        } else {
+                                            return chapter
+                                        }
+                                    })
+                                }
+                            } else {
+                                return semester;
+                            }
+                        })
+                        return { semesters: newSemesters }
+                    });
+                    setMainCourseData((mainCourseData) => {
+                        const newSemesters = mainCourseData.semesters.map((semester) => {
+                            if (semester.id === semesterId) {
+                                return {
+                                    ...semester, chapters: semester.chapters.map((chapter) => {
+                                        if (chapter.id === chapterId) {
+                                            return {
+                                                ...chapter, chapterTest: [...chapter.chapterTest, {
+                                                    id: response.data.insertId,
+                                                    name: quizName,
+                                                    numberOfQuestions: null,
+                                                    timeLimit: null,
+                                                    content: { slides: [{ id: uuidv4(), content: [{ id: uuidv4(), type: 'Quiz', data: null }] }] }
+                                                }]
+                                            }
+                                        } else {
+                                            return chapter
+                                        }
+                                    })
+                                }
+                            } else {
+                                return semester;
+                            }
+                        })
+                        return { semesters: newSemesters }
+                    })
+                    setQuizName("");
+                    setShowModal((showModal) => { return { ...showModal, show: false } })
+                    setError(false)
+                } else {
+                    setError('adding chapter test failed try again');
+                    setQuizName("");
+                    setShowModal((showModal) => { return { ...showModal, show: false } })
+                }
+
+            })
+        }
     }
 
-    function addQuizBelowChapters(semIndex) {
+    function addQuizBelowChapters(semesterId) {
         if (!quizName) {
             setError(true);
             return
         }
-        const quizObj = {
-            id: uuidv4(),
-            name: quizName,
-            numberOfQuestions: null,
-            timeLimit: null,
-            content: {
-                slides: [
-                    {
-                        id: uuidv4(),
-                        content: [
-                            { id: uuidv4(), type: 'Quiz', data: null }
-                        ]
-                    },
-                ]
-            }
+        if (!mainCourseData) {
+            axios.post('http://localhost:3001/api/add-semester-test', {
+                name: quizName,
+                semesterId: semesterId,
+                content: {
+                    slides: [
+                        {
+                            id: uuidv4(),
+                            content: [
+                                { id: uuidv4(), type: 'Quiz', data: null }
+                            ]
+                        },
+                    ]
+                }
+            }).then((response) => {
+                if (response.data.status === 'success') {
+                    axios.get("http://localhost:3001/api/get-parent-data", {
+                        params: {
+                            semesterId: semesterId,
+                            courseId: courseId
+                        }
+                    }).then((res) => {
+                        setSidebarData((sidebarData) => {
+                            const newSemesters = sidebarData.semesters.map((semester) => {
+                                if (semester.id === semesterId) {
+                                    return {
+                                        ...semester, semesterTest: [...semester.semesterTest, {
+                                            id: response.data.insertId,
+                                            name: quizName,
+                                        }]
+                                    }
+                                } else {
+                                    return semester;
+                                }
+                            })
+                            return { semesters: newSemesters }
+                        });
+                        setMainCourseData(res.data);
+                        setQuizName("");
+                        setShowModal((showModal) => { return { ...showModal, show: false } })
+                        setError(false)
+                    })
+
+                }
+            })
+        } else if (semesterId !== mainCourseData.semesters[0].id && isDataSaved) {
+            axios.post('http://localhost:3001/api/add-semester-test', {
+                name: quizName,
+                semesterId: semesterId
+            }).then((response) => {
+                if (response.data.status === 'success') {
+                    axios.get("http://localhost:3001/api/get-parent-data", {
+                        params: {
+                            semesterId: semesterId,
+                            courseId: courseId
+                        }
+                    }).then((res) => {
+                        setSidebarData((sidebarData) => {
+                            const newSemesters = sidebarData.semesters.map((semester) => {
+                                if (semester.id === semesterId) {
+                                    return {
+                                        ...semester, semesterTest: [...semester.semesterTest, {
+                                            id: response.data.insertId,
+                                            name: quizName,
+                                        }]
+                                    }
+                                } else {
+                                    return semester;
+                                }
+                            })
+                            return { semesters: newSemesters }
+                        });
+                        setMainCourseData(res.data);
+                        setQuizName("");
+                        setShowModal((showModal) => { return { ...showModal, show: false } })
+                        setError(false)
+                    })
+
+                }
+            })
+
+        } else if (semesterId !== mainCourseData.semesters[0].id && !isDataSaved) {
+            setShowSaveDataModal(true);
+        } else {
+            axios.post('http://localhost:3001/api/add-semester-test', {
+                name: quizName,
+                semesterId: semesterId
+            }).then((response) => {
+                if (response.data.status === 'success') {
+                    setSidebarData((sidebarData) => {
+                        const newSemesters = sidebarData.semesters.map((semester) => {
+                            if (semester.id === semesterId) {
+                                return {
+                                    ...semester, semesterTest: [...semester.semesterTest, {
+                                        id: response.data.insertId,
+                                        name: quizName,
+                                    }]
+                                }
+                            } else {
+                                return semester;
+                            }
+                        })
+                        return { semesters: newSemesters }
+                    });
+                    setMainCourseData((mainCourseData) => {
+                        const newSemesters = mainCourseData.semesters.map((semester) => {
+                            if (semester.id === semesterId) {
+                                return {
+                                    ...semester, semesterTest: [...semester.semesterTest, {
+                                        id: response.data.insertId,
+                                        name: quizName,
+                                        numberOfQuestions: null,
+                                        timeLimit: null,
+                                        content: {
+                                            slides: [
+                                                {
+                                                    id: uuidv4(),
+                                                    content: [
+                                                        { id: uuidv4(), type: 'Quiz', data: null }
+                                                    ]
+                                                },
+                                            ]
+                                        }
+                                    }]
+                                }
+                            } else {
+                                return semester;
+                            }
+                        })
+                        return { semesters: newSemesters }
+                    })
+                    setQuizName("");
+                    setShowModal((showModal) => { return { ...showModal, show: false } })
+                    setError(false)
+                } else {
+                    setError('adding chapter test failed try again');
+                    setQuizName("");
+                    setShowModal((showModal) => { return { ...showModal, show: false } })
+                }
+
+            })
         }
-        const newSemesters = [...mainCourseData.semesters];
-        newSemesters[semIndex].semesterTest.push(quizObj);
-        setMainCourseData({ semesters: newSemesters });
-        setQuizName("");
-        setShowModal((showModal) => { return { ...showModal, show: false } });
-        setError(false);
     }
 
     function deleteSemester(semId) {
@@ -683,33 +1082,19 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                 console.log("response", response)
                 if (response.data.status === 'no data') {
                     //i.e semester row is not there 
-                    //there was no data in the semester i.e no chapters and tests we have to set parent data to
-                    // const parentData = {
-                    //     id:response.id,
-                    //     name:response.name,
-                    //     content:null,
-                    //     chapters:[],
-                    //     semesterTest:[]
-                    // }
-                    // setMainCourseData({semesters:[{
-                    //     id:response.id,
-                    //     name:response.name,
-                    //     content:null,
-                    //     chapters:[],
-                    //     semesterTest:[]
-                    // }]})
                 } else {
                     //there is semester row 
                     setMainCourseData(response.data);
                     handleSlectedIds(semId, null, null, null, 'semesters');
                 }
             })
-        }else if(semId === mainCourseData?.semesters[0].id){
+        } else if (semId === mainCourseData?.semesters[0].id) {
             //if parent data is present and semester is clicked then dont fetch data only change the local ids
             handleSlectedIds(semId, null, null, null, 'semesters');
-        }else if(semId !== mainCourseData?.semesters[0].id && !isDataSaved){ //semid is diff and data is not saved
-            //if parent data is present and user clicks on another sem and the data is not saved prompt to save 
-        }else if(semId !== mainCourseData?.semesters[0].id && isDataSaved){ //semid is diff and data is saved
+        } else if (semId !== mainCourseData?.semesters[0].id && !isDataSaved) { //semid is diff and data is not saved
+            //if parent data is present and user clicks on another sem and the data is not saved prompt to save
+            setShowSaveDataModal(true);
+        } else if (semId !== mainCourseData?.semesters[0].id && isDataSaved) { //semid is diff and data is saved
             //then make axios call to fetch new sem data and dont show the save data first prompt.
             axios.get("http://localhost:3001/api/get-parent-data", {
                 params: {
@@ -732,25 +1117,199 @@ const SideBar = ({ mainCourseData, setMainCourseData,
 
 
     }
+
+    function handleChapterClick(semId, chapId) {
+        console.log(mainCourseData);
+        if (!mainCourseData) {
+            axios.get("http://localhost:3001/api/get-parent-data", {
+                params: {
+                    semesterId: semId,
+                    courseId: courseId
+                }
+            }).then((response) => {
+                console.log("response", response)
+                if (response.data.status === 'no data') {
+                    //i.e semester row is not there 
+                } else {
+                    //there is semester row 
+                    setMainCourseData(response.data);
+                    handleSlectedIds(semId, chapId, null, null, 'chapters');
+                }
+            })
+        } else if (semId === mainCourseData?.semesters[0].id) {
+            //if parent data is present and semester is clicked then dont fetch data only change the local ids
+            handleSlectedIds(semId, chapId, null, null, 'chapters');
+        } else if (semId !== mainCourseData?.semesters[0].id && !isDataSaved) { //semid is diff and data is not saved
+            //if parent data is present and user clicks on another sem and the data is not saved prompt to save
+            setShowSaveDataModal(true);
+        } else if (semId !== mainCourseData?.semesters[0].id && isDataSaved) { //semid is diff and data is saved
+            //then make axios call to fetch new sem data and dont show the save data first prompt.
+            axios.get("http://localhost:3001/api/get-parent-data", {
+                params: {
+                    semesterId: semId,
+                    courseId: courseId
+                }
+            }).then((response) => {
+                console.log("response", response)
+                if (response.data.status === 'no data') {
+                } else {
+                    //there is semester row 
+                    setMainCourseData(response.data);
+                    handleSlectedIds(semId, chapId, null, null, 'chapters');
+                }
+            })
+        }
+    }
+
+    function handleSectionClick(semId, chapId, secId) {
+        if (!mainCourseData) {
+            axios.get("http://localhost:3001/api/get-parent-data", {
+                params: {
+                    semesterId: semId,
+                    courseId: courseId
+                }
+            }).then((response) => {
+                console.log("response", response)
+                if (response.data.status === 'no data') {
+                    //i.e semester row is not there 
+                } else {
+                    //there is semester row 
+                    setMainCourseData(response.data);
+                    handleSlectedIds(semId, chapId, secId, null, 'sections')
+                }
+            })
+        } else if (semId === mainCourseData?.semesters[0].id) {
+            //if parent data is present and semester is clicked then dont fetch data only change the local ids
+            handleSlectedIds(semId, chapId, secId, null, 'sections')
+        } else if (semId !== mainCourseData?.semesters[0].id && !isDataSaved) { //semid is diff and data is not saved
+            //if parent data is present and user clicks on another sem and the data is not saved prompt to save
+            setShowSaveDataModal(true);
+        } else if (semId !== mainCourseData?.semesters[0].id && isDataSaved) { //semid is diff and data is saved
+            //then make axios call to fetch new sem data and dont show the save data first prompt.
+            axios.get("http://localhost:3001/api/get-parent-data", {
+                params: {
+                    semesterId: semId,
+                    courseId: courseId
+                }
+            }).then((response) => {
+                console.log("response", response)
+                if (response.data.status === 'no data') {
+                } else {
+                    //there is semester row 
+                    setMainCourseData(response.data);
+                    handleSlectedIds(semId, chapId, secId, null, 'sections')
+                }
+            })
+        }
+    }
+
+    function handleChapterTestClick(semId, chapId, quizId) {
+        if (!mainCourseData) {
+            axios.get("http://localhost:3001/api/get-parent-data", {
+                params: {
+                    semesterId: semId,
+                    courseId: courseId
+                }
+            }).then((response) => {
+                console.log("response", response)
+                if (response.data.status === 'no data') {
+                    //i.e semester row is not there 
+                } else {
+                    //there is semester row 
+                    setMainCourseData(response.data);
+                    handleSlectedIds(semId, chapId, null, quizId, 'chapterTest');
+                }
+            })
+        } else if (semId === mainCourseData?.semesters[0].id) {
+            //if parent data is present and semester is clicked then dont fetch data only change the local ids
+            handleSlectedIds(semId, chapId, null, quizId, 'chapterTest');
+        } else if (semId !== mainCourseData?.semesters[0].id && !isDataSaved) { //semid is diff and data is not saved
+            //if parent data is present and user clicks on another sem and the data is not saved prompt to save
+            setShowSaveDataModal(true);
+        } else if (semId !== mainCourseData?.semesters[0].id && isDataSaved) { //semid is diff and data is saved
+            //then make axios call to fetch new sem data and dont show the save data first prompt.
+            axios.get("http://localhost:3001/api/get-parent-data", {
+                params: {
+                    semesterId: semId,
+                    courseId: courseId
+                }
+            }).then((response) => {
+                console.log("response", response)
+                if (response.data.status === 'no data') {
+                } else {
+                    //there is semester row 
+                    setMainCourseData(response.data);
+                    handleSlectedIds(semId, chapId, null, quizId, 'chapterTest');
+                }
+            })
+        }
+    }
+
+    function handleSemesterTestClick(semId, quizId) {
+        if (!mainCourseData) {
+            axios.get("http://localhost:3001/api/get-parent-data", {
+                params: {
+                    semesterId: semId,
+                    courseId: courseId
+                }
+            }).then((response) => {
+                console.log("response", response)
+                if (response.data.status === 'no data') {
+                    //i.e semester row is not there 
+                } else {
+                    //there is semester row 
+                    setMainCourseData(response.data);
+                    handleSlectedIds(semId, null, null, quizId, 'semesterTest');
+                }
+            })
+        } else if (semId === mainCourseData?.semesters[0].id) {
+            //if parent data is present and semester is clicked then dont fetch data only change the local ids
+            handleSlectedIds(semId, null, null, quizId, 'semesterTest');
+        } else if (semId !== mainCourseData?.semesters[0].id && !isDataSaved) { //semid is diff and data is not saved
+            //if parent data is present and user clicks on another sem and the data is not saved prompt to save
+            setShowSaveDataModal(true);
+        } else if (semId !== mainCourseData?.semesters[0].id && isDataSaved) { //semid is diff and data is saved
+            //then make axios call to fetch new sem data and dont show the save data first prompt.
+            axios.get("http://localhost:3001/api/get-parent-data", {
+                params: {
+                    semesterId: semId,
+                    courseId: courseId
+                }
+            }).then((response) => {
+                console.log("response", response)
+                if (response.data.status === 'no data') {
+                } else {
+                    //there is semester row 
+                    setMainCourseData(response.data);
+                    console.log("response.data",response.data);
+                    handleSlectedIds(semId, null, null, quizId, 'semesterTest');
+                }
+            })
+        }
+    }
+
+
     return (
         <>
             <div style={{ overflow: 'auto', height: '90%' }}>
                 {
-                    <MyModal showModal={showModal} setShowModal={setShowModal}
-                        setSemesterName={setSemesterName} semesterName={semesterName}
-                        chapterName={chapterName} setChapterName={setChapterName}
-                        sectionName={sectionName} setSectionName={setSectionName}
-                        quizName={quizName} setQuizName={setQuizName}
-                        newName={newName} setNewName={setNewName}
-                        error={error} setError={setError}
-                        addSemester={addSemester} editSemesterName={editSemesterName} deleteSemester={deleteSemester}
-                        addChapter={addChapter} editChapterName={editChapterName} deleteChapter={deleteChapter}
-                        addSection={addSection} editSectionName={editSectionName} deleteSection={deleteSection}
-                        addSectionLevelQuiz={addSectionLevelQuiz} editChapterLevelQuizName={editChapterLevelQuizName} deleteSectionLevelQuiz={deleteSectionLevelQuiz}
-                        addQuizBelowChapters={addQuizBelowChapters} editQuizName={editQuizName} deleteChapterLevelQuiz={deleteChapterLevelQuiz}
-                    ></MyModal>
+                    <>
+                        <MyModal showModal={showModal} setShowModal={setShowModal}
+                            setSemesterName={setSemesterName} semesterName={semesterName}
+                            chapterName={chapterName} setChapterName={setChapterName}
+                            sectionName={sectionName} setSectionName={setSectionName}
+                            quizName={quizName} setQuizName={setQuizName}
+                            newName={newName} setNewName={setNewName}
+                            error={error} setError={setError}
+                            addSemester={addSemester} editSemesterName={editSemesterName} deleteSemester={deleteSemester}
+                            addChapter={addChapter} editChapterName={editChapterName} deleteChapter={deleteChapter}
+                            addSection={addSection} editSectionName={editSectionName} deleteSection={deleteSection}
+                            addSectionLevelQuiz={addSectionLevelQuiz} editChapterLevelQuizName={editChapterLevelQuizName} deleteSectionLevelQuiz={deleteSectionLevelQuiz}
+                            addQuizBelowChapters={addQuizBelowChapters} editQuizName={editQuizName} deleteChapterLevelQuiz={deleteChapterLevelQuiz}
+                        ></MyModal>
+                    </>
                 }
-                <Accordion>
+                <Accordion defaultActiveKey="0">
                     {
                         sidebarData && sidebarData.semesters?.map((semester, semIndex) => (
                             <Card>
@@ -764,7 +1323,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                                         onMouseLeave={() => { setIsHovering(null) }}
                                         title={`${semester.name}`}
                                     >
-                                        <label onClick={() => { handleSemesterClick(semester.id, 'semester') }}
+                                        <label onClick={() => { handleSemesterClick(semester.id, 'semester'); navigate(`/course-builder/${courseId}/sem/${semester.name}/${semester.id}`)}}
                                             style={{ cursor: 'pointer', maxWidth: '70%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                                             {semester.name}
                                         </label>
@@ -797,7 +1356,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                                                                 onMouseLeave={() => { setIsHovering(null) }}
                                                                 title={`${chapter.name}`}
                                                             >
-                                                                <label onClick={() => { handleSlectedIds(semester.id, chapter.id, null, null, 'chapters'); }} style={{ cursor: 'pointer', maxWidth: '63%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{chapter.name}</label>
+                                                                <label onClick={() => { handleChapterClick(semester.id, chapter.id); }} style={{ cursor: 'pointer', maxWidth: '63%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{chapter.name}</label>
                                                                 <span>
                                                                     {isHovering === `chapter${chapter.id}` && <i className="fa-solid fa-pen me-2"
                                                                         onClick={() => setShowModal((showModal) => { return { ...showModal, semId: semester.id, chapId: chapter.id, action: 'edit', type: 'chapter', name: chapter.name, show: true, title: 'Edit Chapter' } })}
@@ -827,7 +1386,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                                                                             title={section.name}
                                                                         >
 
-                                                                            <label onClick={() => { handleSlectedIds(semester.id, chapter.id, section.id, null, 'sections'); setCurrentSection(section.id); }} style={{ cursor: 'pointer', maxWidth: '63%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{section.name}</label>
+                                                                            <label onClick={() => { handleSectionClick(semester.id, chapter.id, section.id); setCurrentSection(section.id); }} style={{ cursor: 'pointer', maxWidth: '63%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{section.name}</label>
 
                                                                             <span>{isHovering === `section${section.id}` && <i className="fa-solid fa-pen me-2" onClick={() => setShowModal((showModal) => { return { ...showModal, semId: semester.id, chapId: chapter.id, secId: section.id, name: section.name, type: 'section', action: 'edit', show: true, title: 'Edit Section' } })} style={{ cursor: 'pointer' }}></i>}
                                                                                 {isHovering === `section${section.id}` && <i className="fa-regular fa-circle-xmark me-2" onClick={() => setShowModal((showModal) => { return { ...showModal, semId: semester.id, chapId: chapter.id, secId: section.id, name: section.name, type: 'section', action: 'delete', show: true, title: 'Delete Section' } })} style={{ cursor: 'pointer', marginRight: "3px" }}></i>}
@@ -850,7 +1409,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                                                                             title={`${q.name}`}
                                                                         >
 
-                                                                            <label onClick={() => { handleSlectedIds(semester.id, chapter.id, null, q.id, 'chapterTest'); setCurrentSection(q.id) }} style={{ cursor: 'pointer', maxWidth: '63%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{q.name}</label>
+                                                                            <label onClick={() => { handleChapterTestClick(semester.id, chapter.id, q.id); setCurrentSection(q.id) }} style={{ cursor: 'pointer', maxWidth: '63%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{q.name}</label>
 
                                                                             <span>{isHovering === `chapterTest${q.id}` && <i className="fa-solid fa-pen me-2" onClick={() => setShowModal((showModal) => { return { ...showModal, chapTestId: q.id, semId: semester.id, chapId: chapter.id, name: q.name, type: 'chapTest', action: 'edit', show: true, title: 'Edit Test' } })} style={{ cursor: 'pointer' }}></i>}
                                                                                 {isHovering === `chapterTest${q.id}` && <i className="fa-regular fa-circle-xmark me-2" onClick={() => setShowModal((showModal) => { return { ...showModal, chapTestId: q.id, semId: semester.id, chapId: chapter.id, name: q.name, type: 'chapTest', action: 'delete', show: true, title: 'Delete Test' } })} style={{ cursor: 'pointer', marginRight: "3px" }}></i>}
@@ -863,7 +1422,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                                                                         <span>Add Section</span><i style={{ marginLeft: "7px", cursor: 'pointer' }} onClick={() => { setShowModal({ ...showModal, semId: semester.id, chapId: chapter.id, semIndex: semIndex, chapIndex: chapIndex, type: 'section', action: 'add', show: true, title: 'Add Section' }) }} className="fa-solid fa-plus"></i>
                                                                     </div>
                                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0px' }}>
-                                                                        <span>Add Test</span><i style={{ marginLeft: "7px", cursor: 'pointer' }} onClick={() => { setShowModal({ ...showModal, semIndex: semIndex, chapIndex: chapIndex, type: 'chapTest', action: 'add', show: true, title: 'Add Test' }) }} className="fa-solid fa-plus"></i>
+                                                                        <span>Add Test</span><i style={{ marginLeft: "7px", cursor: 'pointer' }} onClick={() => { setShowModal({ ...showModal, semId: semester.id, chapId: chapter.id, semIndex: semIndex, chapIndex: chapIndex, type: 'chapTest', action: 'add', show: true, title: 'Add Test' }) }} className="fa-solid fa-plus"></i>
                                                                     </div>
 
                                                                 </div>
@@ -886,7 +1445,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                                                             onMouseLeave={() => { setIsHovering(null) }}
                                                             title={q.name}
                                                         >
-                                                            <label onClick={() => { handleSlectedIds(semester.id, null, null, q.id, 'semesterTest'); }} style={{ cursor: 'pointer', maxWidth: '63%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{q.name}</label>
+                                                            <label onClick={() => { handleSemesterTestClick(semester.id, q.id); }} style={{ cursor: 'pointer', maxWidth: '63%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{q.name}</label>
                                                             <span>
                                                                 {isHovering === `semesterTest${q.id}` && <i className="fa-solid fa-pen me-2"
                                                                     onClick={() => setShowModal((showModal) => { return { ...showModal, type: 'semTest', action: 'edit', semId: semester.id, semTestId: q.id, show: true, title: 'Edit Test' } })}
@@ -906,7 +1465,7 @@ const SideBar = ({ mainCourseData, setMainCourseData,
                                                 <span>Add Chapter</span><i style={{ marginLeft: "7px", cursor: 'pointer' }} onClick={() => { setShowModal({ ...showModal, semId: semester.id, semIndex: semIndex, show: true, type: 'chapter', action: 'add', title: 'Add Chapter' }) }} className="fa-solid fa-plus"></i>
                                             </div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0px  7px' }}>
-                                                <span>Add Test</span><i style={{ marginLeft: "7px", cursor: 'pointer' }} onClick={() => { setShowModal({ ...showModal, semIndex: semIndex, show: true, type: 'semTest', action: 'add', title: 'Add Test' }) }} className="fa-solid fa-plus"></i>
+                                                <span>Add Test</span><i style={{ marginLeft: "7px", cursor: 'pointer' }} onClick={() => { setShowModal({ ...showModal, semId: semester.id, semIndex: semIndex, show: true, type: 'semTest', action: 'add', title: 'Add Test' }) }} className="fa-solid fa-plus"></i>
                                             </div>
 
                                         </div>

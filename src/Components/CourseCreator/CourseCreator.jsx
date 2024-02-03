@@ -20,9 +20,10 @@ import { Resizable } from 're-resizable';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 import toast, { Toaster } from "react-hot-toast";
+import SaveDataModal from '../SideBar/SaveDataModal';
 
 const CourseCreator = ({ selectedSectionId, selectedChapterId, selectedSemId, mainCourseData, setMainCourseData, selectedQuizId, setSlideId,
-    slideId, type, isDeleted, showPreview, setShowPreview, setPreviewIds ,setIsDataSaved }) => {
+    slideId, type, isDeleted, showPreview, setShowPreview, setPreviewIds ,setIsDataSaved ,courseInfo , setShowSaveDataModal , showSaveDataModal}) => {
 
         console.log('rendering course creator');
         console.log("mcd set by sidebar" , mainCourseData);   
@@ -80,15 +81,17 @@ const CourseCreator = ({ selectedSectionId, selectedChapterId, selectedSemId, ma
         if (type === 'chapterTest') {
             if (chapterTest) {
                 setSlidesData(chapterTest.content ? chapterTest.content : { slides: [{ id: uuidv4(), content: [{ id: uuidv4(), type: "Quiz", data: null }] }] })
-                setCurrentSlideId(chapterTest.content ? chapterTest.content.slides[0].id : firstSlide.id);
+                setCurrentSlideId(chapterTest.content ? chapterTest.content?.slides[0].id : firstSlide.id);
                 setNumberOfQuestionToShow(chapterTest.numberOfQuestions ? chapterTest.numberOfQuestions : 0);
                 setTimeLimit(chapterTest.timeLimit ? chapterTest.timeLimit : null);
             }
         }
         if (type === 'semesterTest') {
             if (semesterTest) {
+                console.log('inside get data from parent of semesterTest' , semesterTest);
                 setSlidesData(semesterTest.content ? semesterTest.content : { slides: [{ id: uuidv4(), content: [{ id: uuidv4(), type: "Quiz", data: null }] }] })
                 setCurrentSlideId(semesterTest.content ? semesterTest.content.slides[0].id : firstSlide.id);
+                console.log("semesterTest.content.slides[0].id" , semesterTest.content.slides[0].id);
                 setNumberOfQuestionToShow(semesterTest.numberOfQuestions ? semesterTest.numberOfQuestions : 0);
                 setTimeLimit(semesterTest.timeLimit ? semesterTest.timeLimit : null);
             }
@@ -242,7 +245,6 @@ const CourseCreator = ({ selectedSectionId, selectedChapterId, selectedSemId, ma
 
     useEffect(() => {
         setDataToParent(selectedSemId, selectedChapterId, selectedSectionId, selectedQuizId);
-        setIsDataSaved(false);
     }, [slidesData, timeLimit, numberOfQuestionToShow])
 
     // useEffect(()=>{
@@ -499,6 +501,7 @@ const CourseCreator = ({ selectedSectionId, selectedChapterId, selectedSemId, ma
             })
             .then((response) => {
                 console.log('course saved' , response);
+                setIsDataSaved(true);
                 notify();
             })
         } catch (error) {
@@ -507,26 +510,28 @@ const CourseCreator = ({ selectedSectionId, selectedChapterId, selectedSemId, ma
     }
 
     return (<>
+        <SaveDataModal showSaveDataModal={showSaveDataModal} setShowSaveDataModal={setShowSaveDataModal} handleSaveCourse={handleSaveCourse}/>
         {
+            
             slidesData && (
                 <div className='course_creator_container'>
                     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} modifiers={[restrictToWindowEdges]}>
                         <div className='slides_container'>
                             <div style={{ padding: "1em 2em" }}>
-                                <span><strong>Course Name:</strong>Trigonometry course</span><br></br>
-                                <span><strong>Subject:</strong> Maths</span><br></br>
-                                <span><strong>Description:</strong>This course will teach about the fundamentals of trigonometry</span>
+                                <span><strong>Course Name:</strong>{courseInfo.course_name}</span><br></br>
+                                <span><strong>Subject:</strong> {courseInfo.subject_name}</span><br></br>
+                                <span><strong>Description:</strong>{courseInfo.course_description ? courseInfo.course_description : 'description not added'}</span>
                             </div>
 
                             {
                                 selectedQuizId &&
                                 (<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '4px', gap: '1em' }}>
-                                    <span>No. of question to display: <input type='number' style={{ width: '50px' }} value={numberOfQuestionToShow} onChange={(e) => { setNumberOfQuestionToShow(e.target.value) }}></input></span>
+                                    <span>No. of question to display: <input type='number' style={{ width: '50px' }} value={numberOfQuestionToShow} onChange={(e) => {setIsDataSaved(false); setNumberOfQuestionToShow(e.target.value) }}></input></span>
                                     <span>Time Limit:</span>
-                                    <input style={{ width: '50px' }} value={timeLimit ? timeLimit.hours : 0} type='number' onChange={(e) => { setTimeLimit((timeLimit) => { return { ...timeLimit, hours: e.target.value } }) }}></input>
+                                    <input style={{ width: '50px' }} value={timeLimit ? timeLimit.hours : 0} type='number' onChange={(e) => {setIsDataSaved(false); setTimeLimit((timeLimit) => { return { ...timeLimit, hours: e.target.value } }) }}></input>
 
 
-                                    <span>Hr</span><input style={{ width: '50px' }} value={timeLimit ? timeLimit.minutes : 0} type='number' onChange={(e) => { setTimeLimit((timeLimit) => { return { ...timeLimit, minutes: e.target.value } }) }}></input><span>Minutes</span>
+                                    <span>Hr</span><input style={{ width: '50px' }} value={timeLimit ? timeLimit.minutes : 0} type='number' onChange={(e) => {setIsDataSaved(false); setTimeLimit((timeLimit) => { return { ...timeLimit, minutes: e.target.value } }) }}></input><span>Minutes</span>
                                 </div>)
                             }
                             <div className='slide'>
@@ -541,13 +546,13 @@ const CourseCreator = ({ selectedSectionId, selectedChapterId, selectedSemId, ma
                                                         if (element.type === 'Heading') {
                                                             return <SortableItem id={element.id} key={index} setSlidesData={setSlidesData} slideId={currentSlideId} setIsSorted={setIsSorted}>
                                                                 <div className='heading_form_top border p-1'>
-                                                                    <input type='text' value={element.data} onChange={(e) => { handleOnChange(e, element.id, currentSlideId) }} placeholder='Heading...' className='heading_form_top_name'></input>
+                                                                    <input type='text' value={element.data} onChange={(e) => {setIsDataSaved(false); handleOnChange(e, element.id, currentSlideId) }} placeholder='Heading...' className='heading_form_top_name'></input>
                                                                 </div>
                                                             </SortableItem>;
                                                         }
                                                         if (element.type === 'Text') {
                                                             return <SortableItem id={element.id} key={index} setSlidesData={setSlidesData} slideId={currentSlideId} setIsSorted={setIsSorted}>
-                                                                <Editor slidesData={slidesData} setSlidesData={setSlidesData} data={element.data} slideId={currentSlideId} contentId={element.id} isSorted={isSorted} />
+                                                                <Editor slidesData={slidesData} setSlidesData={setSlidesData} data={element.data} slideId={currentSlideId} contentId={element.id} isSorted={isSorted} setIsDataSaved={setIsDataSaved}/>
                                                             </SortableItem>;
                                                         }
                                                         if (element.type === 'Image') {
@@ -576,13 +581,13 @@ const CourseCreator = ({ selectedSectionId, selectedChapterId, selectedSemId, ma
                                                                 {element.data.imgData ? null : <div style={{ width: "100%", height: "150px", textAlign: "center", display: "flex", border: "2px dashed #E5E4E2", borderRadius: '12px', justifyContent: "center", alignItems: "center" }}>
                                                                     <label htmlFor={`${element.id}`} style={{ width: '100%', height: '100%', cursor: 'pointer', display: 'flex', justifyContent: "center", alignItems: "center", flexDirection: 'column' }} ><i style={{ fontSize: '34px', color: '#7393B3' }} className="fa-solid fa-file-image"></i><span style={{ color: "#7393B3" }}>upload image</span></label>
                                                                 </div>}
-                                                                <input type='file' accept='image/*' id={`${element.id}`} onChange={(event) => handleImageChange(event, currentSlideId, element.id)} style={{ display: "none" }}></input>
+                                                                <input type='file' accept='image/*' id={`${element.id}`} onChange={(event) =>{setIsDataSaved(false); handleImageChange(event, currentSlideId, element.id)}} style={{ display: "none" }}></input>
                                                             </SortableItem>;
                                                         }
                                                         if (element.type === 'Video') {
                                                             return (
                                                                 <SortableItem id={element.id} key={index} setSlidesData={setSlidesData} slideId={currentSlideId} setIsSorted={setIsSorted}>
-                                                                    <VideoComponent slidesData={slidesData} setSlidesData={setSlidesData} slideId={currentSlideId} contentId={element.id} data={element.data} isSorted={isSorted} />
+                                                                    <VideoComponent slidesData={slidesData} setSlidesData={setSlidesData} slideId={currentSlideId} contentId={element.id} data={element.data} isSorted={isSorted} setIsDataSaved={setIsDataSaved}/>
                                                                 </SortableItem>
                                                             )
                                                         }
@@ -593,7 +598,6 @@ const CourseCreator = ({ selectedSectionId, selectedChapterId, selectedSemId, ma
                                                                 </SortableItem>
                                                             )
                                                         }
-
                                                     })
                                                 }
                                             </SortableContext>

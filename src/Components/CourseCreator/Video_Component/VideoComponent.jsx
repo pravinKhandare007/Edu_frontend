@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import YouTubeVideo from "./YouTubeVideo";
 
-const VideoComponent = ({slidesData , setSlidesData , slideId , contentId , data , isSorted}) => {
+const VideoComponent = ({slidesData , setSlidesData , slideId , contentId , data , isSorted,setIsDataSaved}) => {
    
    const [videoData , setVideoData ] = useState({
     renderComponent:"choiceComponent" , 
@@ -65,10 +65,10 @@ const VideoComponent = ({slidesData , setSlidesData , slideId , contentId , data
                 <label htmlFor={`${contentId}`} style={{cursor:'pointer'}}>choose from pc</label>
                 <input type="file" name="desktop_upload" id={`${contentId}`} style={{display:'none'}} />
             </div>
-            <div className="yt_video d-flex flex-column justify-content-center align-items-center p-3" style={{cursor:'pointer'}} onClick={()=> setVideoData((prevVideoData)=>{
+            <div className="yt_video d-flex flex-column justify-content-center align-items-center p-3" style={{cursor:'pointer'}} onClick={()=>{setIsDataSaved(false); setVideoData((prevVideoData)=>{
                 const newVideoData = {...prevVideoData , renderComponent: "yt_component"};
                 return newVideoData;
-            })}>
+            })} }>
                 Click to upload youtube video
                 <i style={{fontSize:'2em'}} class="fa-brands fa-youtube"></i>
             </div>

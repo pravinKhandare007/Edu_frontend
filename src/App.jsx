@@ -104,13 +104,7 @@ const App = () => {
           <Route path="/forgotPassword" element={<ForgotPassword />} />
           <Route path="/verify-otp" element={<Otp />} />
           <Route path="/resetPassword" element={<ResetPassword />} />
-          <Route path="/course-builder" element={<CourseBuilder/>} />
           <Route path="/course-builder/:courseId" element={<CourseBuilder/>} />
-          <Route path="/course-builder/:courseId/:semesterName/:semesterId" element={<CourseBuilder/>} />
-          <Route path="/course-builder/:courseId/:semesterName/:semesterId/:chapterName/:chapterId" element={<CourseBuilder/>} />
-          <Route path="/course-builder/:courseId/:semesterName/:semesterId/test/:semesterTestName/:semesterTestId" element={<CourseBuilder/>} />
-          <Route path="/course-builder/:courseId/:semesterName/:semesterId/:chapterName/:chapterId/:sectionName/:sectionId" element={<CourseBuilder/>} />
-          <Route path="/course-builder/:courseId/:semesterName/:semesterId/:chapterName/:chapterId/test/:chapterTestName/:chapterTestId" element={<CourseBuilder/>} />
           {/* Wrap routes that should have the Sidebar with a Sidebar component */}
           <Route
             path="/*"

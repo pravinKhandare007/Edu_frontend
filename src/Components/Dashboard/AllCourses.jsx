@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../../Styles/PublishCourse.css";
-import { Link } from "react-router-dom";
+import { Link , useNavigate } from "react-router-dom";
 import { FaEdit } from "react-icons/fa";
 
 
 const AllCourses = () => {
   const [userCourses, setUserCourses] = useState([]);
-
+  const [showPopUp, setShowPopUp] = useState();
+  const navigate = useNavigate();
   useEffect(() => {
     try {
       // Retrieve the JWT token from localStorage
@@ -65,9 +66,9 @@ const AllCourses = () => {
               <i class="bx bx-objects-vertical-bottom"></i>
             </div>
           </div>
-          
-            <Link to="/create-course"> <button className="cta_button">Create Course</button></Link>
-          
+
+          <Link to="/create-course"> <button className="cta_button">Create Course</button></Link>
+
         </div>
       </div>
 
@@ -93,8 +94,24 @@ const AllCourses = () => {
                     {course.total_chapters}
                   </td>
                   <td className="content__table-data">{course.status}</td>
-                  <td className="content__table-data" ><FaEdit /></td>
-                  
+                  <td style={{ position: 'relative' }} className="content__table-data">
+                    <i onClick={() => {
+                      setShowPopUp((showPopUp) => {
+                        if(showPopUp){
+                          return '';
+                        }else{
+                          return course.course_id
+                        }
+                      })
+                    }} class="fa-solid fa-ellipsis-vertical"></i>
+                    <div className={`${(showPopUp === course.course_id) ? "show-pop-up" : 'hide-pop-up'}` }>
+                      <span onClick={() => { console.log("course.course_id", course.course_id); navigate(`/course-builder/${course.course_id}`) }}>edit</span>
+                      <span>preview</span>
+                      <span>delete</span>
+                    </div>
+
+                  </td>
+
                 </tr>
               ))}
             </tbody>

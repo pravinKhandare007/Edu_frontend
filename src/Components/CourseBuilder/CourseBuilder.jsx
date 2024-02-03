@@ -11,7 +11,7 @@ import { Link, useParams } from "react-router-dom";
 
 const CourseBuilder = () => {
     console.log("rendering parent");
-    const [courseInfo , setCourseInfo ] = useState(null);
+    const [courseInfo, setCourseInfo] = useState(null);
     //useParam 
     const [selectedSemId, setSelectedSemId] = useState(null);
     const [selectedChapterId, setSelectedChapterId] = useState(null);
@@ -20,7 +20,7 @@ const CourseBuilder = () => {
     const [mainCourseData, setMainCourseData] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
     const [type, setType] = useState('');
-    
+
     //ids for preview components 
     const [selectedSemPreviewId, setSelectedSemPreviewId] = useState(null);
     const [selectedChapterPreviewId, setSelectedChapterPreviewId] = useState(null);
@@ -41,69 +41,21 @@ const CourseBuilder = () => {
     //to toggle sidebar
     const [toggle, setToggle] = useState(false);
     //flag to store if data is saved or not
-    const [isDataSaved , setIsDataSaved] = useState(true);
+    const [isDataSaved, setIsDataSaved] = useState(true);
+    const [showSaveDataModal, setShowSaveDataModal] = useState(false);
+    const { courseId } = useParams();
 
-    // useEffect(()=>{
-    //     axios.get('http://localhost:3001/api/fetch-course-info')
-    //     .then((res)=>{
-    //         setCourseInfo()
-    //     })
-    // },[])
-    
-    // useEffect(() => {
-    //     setMainCourseData({
-    //         semesters: [
-    //             {
-    //                 id: uuidv4(),
-    //                 name: 'Sem 1',
-    //                 content: {
-    //                     slides: [{ id: uuidv4(), content: [{ id: uuidv4(), type: 'Heading', data: 'Sem 1 heading' }] }]
-    //                 },
-    //                 chapters: [
+    useEffect(() => {
+        axios.get('http://localhost:3001/api/fetch-course-info', {
+            params: {
+                courseId: courseId
+            }
+        }).then((res) => {
+            console.log(res.data.rows, res.data);
+            setCourseInfo(res.data.rows)
+        })
+    }, [])
 
-    //                     {
-    //                         id: uuidv4(),
-    //                         name: 'chapter 1',
-    //                         content: {
-    //                             slides: [{ id: uuidv4(), content: [{ id: uuidv4(), type: 'Heading', data: 'Sem 1 chapter 1 heading' }] }]
-    //                         },
-    //                         sections: [
-    //                             {
-    //                                 id: uuidv4(),
-    //                                 name: 'section 1',
-    //                                 content: {
-    //                                     slides: [
-    //                                         { id: uuidv4(), content: [{ id: uuidv4(), type: 'Heading', data: 'section 1 slide 1' }] },
-    //                                         { id: uuidv4(), content: [{ id: uuidv4(), type: 'Text', data: 'section 1 slide 2' }] },
-    //                                     ]
-    //                                 }
-    //                             }
-    //                         ],
-    //                         chapterTest: [{ id: uuidv4(), name: "Chapter Test", numberOfQuestions: 5, timeLimit: { hours: 4, minutes: 24 }, content: { slides: [{ id: uuidv4(), content: [{ id: uuidv4(), type: 'Quiz', data: null }] }] } }]
-    //                     },
-
-
-    //                 ],
-    //                 semesterTest: [{ id: uuidv4(), name: "Semester Test", numberOfQuestions: 7, timeLimit: { hours: 2, minutes: 20 }, content: { slides: [{ id: uuidv4(), content: [{ id: uuidv4(), type: 'Quiz', data: null }] }] } }]
-    //             },
-
-    //         ]
-    //     });
-    // }, []);
-    /*
-     mainCourseData = {
-        semesters: [
-             {
-            "id": 10,
-            "name": "demo semester",
-            "content": null,
-            "chapters": [],
-            "semesterTest": []
-        }
-        ]
-     }
-    
-    */
     useEffect(() => {
         console.log("last parent render : , ", mainCourseData);
     })
@@ -171,6 +123,7 @@ const CourseBuilder = () => {
                             selectedQuizPreviewId={selectedQuizPreviewId}
                             slideId={slideId}
                             previewType={previewType}
+                            courseInfo={courseInfo}
                         />
                     </>) : (
                     <>
@@ -189,8 +142,9 @@ const CourseBuilder = () => {
                                 handleSlectedIds={handleSlectedIds}
                                 setIsDeleted={setIsDeleted}
                                 isDataSaved={isDataSaved}
+                                setShowSaveDataModal={setShowSaveDataModal}
                             />
-                        </div >
+                        </div>
                         <div className="slides-container">
                             <CourseCreator
                                 mainCourseData={mainCourseData} setMainCourseData={setMainCourseData}
@@ -207,6 +161,9 @@ const CourseBuilder = () => {
                                 setShowPreview={setShowPreview}
                                 setPreviewIds={setPreviewIds}
                                 setIsDataSaved={setIsDataSaved}
+                                courseInfo={courseInfo}
+                                setShowSaveDataModal={setShowSaveDataModal}
+                                showSaveDataModal={showSaveDataModal}
                             />
                         </div>
                     </>
@@ -218,8 +175,6 @@ const CourseBuilder = () => {
 }
 
 export default CourseBuilder;
-
-
 
 {/* <div className="title">
 

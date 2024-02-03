@@ -6,7 +6,7 @@ import Pagination from '../Pagination/Pagination';
 
 import { v4 as uuidv4 } from 'uuid';
 
-const CourseCreatorPreview = ({ mainCourseData, selectedSemPreviewId, selectedChapterPreviewId, selectedSectionPreviewId, selectedQuizPreviewId, slideId , previewType }) => {
+const CourseCreatorPreview = ({ mainCourseData, selectedSemPreviewId, selectedChapterPreviewId, selectedSectionPreviewId, selectedQuizPreviewId, slideId , previewType,courseInfo }) => {
 
     console.log("rendering course creater");
     const [currentSlideId, setCurrentSlideId] = useState(null); // will contain the id of the current slide
@@ -81,6 +81,11 @@ const CourseCreatorPreview = ({ mainCourseData, selectedSemPreviewId, selectedCh
             slidesData ? (
                 <div className='course_creator_container'>
                     <div className='slides_container' style={{ width: "100%", display: 'flex', flexDirection: 'column', height: '100%' }}>
+                    <div style={{ padding: "1em 2em" }}>
+                                <span><strong>Course Name:</strong>{courseInfo.course_name}</span><br></br>
+                                <span><strong>Subject:</strong> {courseInfo.subject_name}</span><br></br>
+                                <span><strong>Description:</strong>{courseInfo.course_description ? courseInfo.course_description : 'description not added'}</span>
+                            </div>
                         <div className='slide'>
                             {
                                 <div style={{ border: "1px solid #b6ccd8", position: 'relative', width: '100%', padding: '1em', minHeight: '100%', display: "flex", flexDirection: "column", gap: "10px", backgroundColor: "#ffffff", borderRadius: '12px' }}>
@@ -137,6 +142,9 @@ const CourseCreatorPreview = ({ mainCourseData, selectedSemPreviewId, selectedCh
                                                                         })
                                                                     )
                                                                 }
+                                                            </div>
+                                                            <div>
+                                                                <span>correct Answers are : </span> <span></span>
                                                             </div>
                                                         </div>
                                                     </div>

@@ -177,7 +177,7 @@ const McqComponent = ({ setSlidesData, slideId, contentId, slidesData, data, isS
                             mcq.options.map((option, optionIndex) => {
                                 return (
                                     <div key={optionIndex} style={{marginLeft:'22px', marginTop:'10px'}}>
-                                        <input type="radio" value={option} name="radio" onChange={(e) => { saveCorrectAnswer(e, optionIndex) }} />
+                                        <input type="radio"  value={option} checked={mcq.correctAnswer[`option${optionIndex}`]} name="radio" onChange={(e) => { saveCorrectAnswer(e, optionIndex) }} />
                                         <input type="text" placeholder={`option ${optionIndex + 1}`} value={option} onChange={(e) => { saveOption(e, optionIndex) }} style={{ width: '90%', border: 'none', outline: "none" }} />
                                         <i onClick={() => { deleteOption(optionIndex) }} style={{ cursor: "pointer" }} className="fa-regular fa-circle-xmark"></i>
                                     </div>

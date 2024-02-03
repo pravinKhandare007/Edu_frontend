@@ -8,7 +8,7 @@ window.Quill = quill;
 
 Quill.register("modules/imageResize", ImageResize);
 
-const Editor = ({ slidesData, setSlidesData, slideId, placeholder, data , contentId , isSorted}) => {
+const Editor = ({ slidesData, setSlidesData, slideId, placeholder, data , contentId , isSorted ,setIsDataSaved}) => {
   
   const [editorContent , setEditorContent] = useState("");
 
@@ -48,6 +48,7 @@ const Editor = ({ slidesData, setSlidesData, slideId, placeholder, data , conten
   },[editorContent])
 
   const handleChange = (html) => {
+    setIsDataSaved(false);
     setEditorContent(html);
   };
 

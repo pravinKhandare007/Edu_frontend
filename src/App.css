@@ -277,7 +277,6 @@
   text-align: left;
 }
 
-
 .content__table-col-heading {
   font-weight: 700;
   color: black;
@@ -286,4 +285,26 @@
 .content__table:hover{
   background-color: #e4e9f7;
   cursor: pointer;
+}
+
+.show-pop-up{
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  background-color: #ffffff;
+  padding: 0.5em;
+  margin:0;
+  line-height: 1em !important;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  text-transform: capitalize;
+}
+.show-pop-up span:hover{
+  background-color: #e4e9f7;
+  cursor: pointer;
+}
+.hide-pop-up{
+  display: none;
 }
