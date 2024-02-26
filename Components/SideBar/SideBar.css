@@ -1,0 +1,74 @@
+
+
+.testing{
+    border-left: 3px solid var(--primary-color);
+    
+    padding: 1em;
+}
+
+.testing-2{
+    border-left: 3px solid var(--primary-color);
+    padding: 0.8em;
+}
+
+.card{
+    /* border-radius: 0 !important; */
+    margin-top: 5px; 
+    /* padding: 1em;    */
+}
+
+.card-header{
+    /* background-color: rgb(240, 32, 240);
+    border-radius: 100px !important; */
+    border: none;
+    font-size: 0.9rem;
+    font-weight: medium;
+    font-family: 'Inter', sans-serif;
+}
+
+.add-semester-button-container{
+    padding: 5px 0px;
+}
+
+.bg-glow{
+    border-radius: 50%;
+    padding: 5px;
+}
+
+.bg-glow:hover{
+    background-color: rgb(194, 194, 194);
+}
+
+.add-buttons{
+    font-size: 0.8rem;
+}
+
+.accordion-collapse{
+    overflow: hidden !important;
+}
+
+.highlight{
+    background-color: var(--blue-primary);
+}
+.highlight label{
+    color:white;
+}
+.highlight span{
+    color:white;
+}
+.highlight button{
+    background-color: transparent !important;
+    color:white;
+}
+
+.highlight i{
+    background-color: transparent !important;
+    color:white;
+}
+
+.test-icon{
+    position: absolute;
+    margin-left:3px ;
+    top: 30%;
+    left:0;
+}
